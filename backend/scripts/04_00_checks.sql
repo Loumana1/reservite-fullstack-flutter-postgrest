@@ -42,3 +42,11 @@ ADD CONSTRAINT  restaurants_price_range
 ;
 
 
+alter table services
+ ADD CONSTRAINT services_day_of_week
+check( day_of_week BETWEEN 1 AND 7),
+
+
+ADD CONSTRAINT service_min_length
+check (end_time >=  start_time+interval('1 hour') )
+
