@@ -69,5 +69,16 @@ alter table services
 
 
     ADD CONSTRAINT service_min_length
-        check (end_time >=  start_time+interval('1 hour') )
+        check (end_time >=  start_time+interval('1 hour') );
 
+
+--*********************************************************************************************************************************************************************
+                                                                    --RESERVATION--
+--**********************************************************************************************************************************************************************
+
+alter table reservations
+    add constraint number_guest_positive
+    check ( number_of_guests > 0 ),
+
+    add constraint special_request_length
+    check (special_requests is null or length(trim(special_requests)) >= 10)
