@@ -1,0 +1,19 @@
+create or replace function tgr_check_table_assigment()
+returns trigger as $$
+    begin
+        if exists(
+            select 1
+            from reservations
+            where id = new.reservation
+            and status in ('pending' , 'cancelled')
+        ) then raise exception 'On ne peut pas assigner de tabl a une reservation en attente ou annulee.';
+        end if;
+
+        return new;
+    end;
+    $$ language plpgsql;
+
+create trigger trigger_table_assigment
+    before insert or update on reservation_tables
+    for each row
+    execute function tgr_check_table_assigment();

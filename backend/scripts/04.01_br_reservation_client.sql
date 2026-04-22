@@ -2,7 +2,7 @@
                                                              --RESERVATION--
 --************************************************************************************************************************************************
 
-create or replace function reservation_client_role()
+create or replace function tgr_reservation_client_role()
 returns trigger as $$
     begin
         if exists(
@@ -18,7 +18,7 @@ returns trigger as $$
     end;
     $$ language plpgsql;
 
-create trigger reservation_client_role
+create trigger trigger_reservation_client_role
     before insert or update on reservations
     for each row
-execute function reservation_client_role();
+execute function tgr_reservation_client_role();
