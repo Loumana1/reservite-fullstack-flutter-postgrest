@@ -7,9 +7,9 @@ returns trigger as $$
         from restaurants
         where id = new.restaurant;
 
-        if (date_part('minute', new.start_time)::int % slot != 0 ) or
-           (date_part('minute', new.end_time)::int % slot != 0 ) then
-            raise exception 'Horaire pas alignes sur % minutes !' , slot;
+        if (date_part('minute', new.start_time)::int % slot != 0 )
+            or(date_part('minute', new.end_time)::int % slot != 0 )
+            then raise exception 'Horaire pas alignes sur % minutes !' , slot;
         end if;
 
         return new ;
