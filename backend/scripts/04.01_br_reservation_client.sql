@@ -18,7 +18,7 @@ returns trigger as $$
     end;
     $$ language plpgsql;
 
-create trigger reservation_client_role
+create trigger trigger_reservation_client_role
     before insert or update on reservations
     for each row
 execute function tgr_reservation_client_role();
