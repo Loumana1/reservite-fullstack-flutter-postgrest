@@ -2,6 +2,7 @@
                                                         --TABLES--
 --********************************************************************************************************************************************
 
+--pas offiellment un br,  vient de completer les contraites checks table
 create or replace function table_unique_restaurant()
 
 returns trigger as $$
