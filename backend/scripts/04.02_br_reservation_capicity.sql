@@ -1,4 +1,4 @@
-create or replace function check_reservation_capacity()
+create or replace function tgr_check_reservation_capacity()
 returns trigger as $$
     declare
         total_capacity int ;
@@ -41,4 +41,4 @@ returns trigger as $$
 create trigger trigger_check_capacity
     before insert or update  on reservation_tables
     for each row
-    execute function check_reservation_capacity();
+    execute function tgr_check_reservation_capacity();
