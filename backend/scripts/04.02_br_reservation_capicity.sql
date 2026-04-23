@@ -1,44 +1,39 @@
 create or replace function tgr_check_reservation_capacity()
-returns trigger as $$
-    declare
-        total_capacity int ;
-        res_guests int ;
-        res_status text;
-        res_restaurant_id int;
-        inv_table_count int;
-    begin
+    returns trigger as
+$$
+begin
+    if exists(select r.id, r.number_of_guests, coalesce(sum(t.capacity), 0)
+              from reservations r
+                       left join reservation_tables rt on rt.reservation = r.id
+                       left join tables t on t.id = rt."table"
+              where r.status in ('confirmed'::status_type, 'completed'::status_type)
+              group by r.id, r.number_of_guests
+              having r.number_of_guests > coalesce(sum(t.capacity), 0)) then
+        raise exception 'Le nombre de convives dépasse la capacité totale.';
+    end if;
 
-        select number_of_guests, status , restaurant
-        into res_guests , res_status , res_restaurant_id
-        from reservations
-        where id = new.reservation;
+    return null;
+end;
+$$ language plpgsql;
 
-        if res_status in ('confirmed' , 'completed') then
-            select count(*) into inv_table_count
-            from reservation_tables rt
-            join tables t on rt.table = t.id
-            where rt.reservation = new.reservation
-            and t.restaurant != res_restaurant_id;
-
-            if inv_table_count > 0 then
-                raise exception 'plusiers table n''appartiennent pas au restaurant de la reservation !';
-
-            end if;
-
-            select sum(capacity) into total_capacity
-            from tables
-            where id in (select  "tables" from reservation_tables where reservation = new.reservation)
-            or id = new.table;
-
-            if total_capacity < res_guests then
-                raise exception 'Capacite insuffusante : % places pour % convives.', total_capacity;
-            end if;
-        end if;
-        return  new ;
-    end;
-    $$language  plpgsql;
-
-create trigger trigger_check_capacity
-    before insert or update  on reservation_tables
+create trigger trigger_validate_reservation_capacity
+    after insert or update of number_of_guests, status
+    on reservations
     for each row
-    execute function tgr_check_reservation_capacity();
+execute function tgr_check_reservation_capacity();
+
+
+create constraint trigger trigger_validate_reservation_tables_capacity
+    after delete
+    on reservation_tables
+    deferrable initially deferred
+    for each row
+execute function tgr_check_reservation_capacity();
+
+
+create trigger trigger_validate_tables_capacity
+    after update of capacity or delete
+    on tables
+    for each row
+
+execute function tgr_check_reservation_capacity();
