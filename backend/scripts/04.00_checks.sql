@@ -43,7 +43,7 @@ alter table restaurants
     --A ameriorrer avec regex
 
     ADD CONSTRAINT restaurants_phone_min_length
-    check ( length(trim(phone)) == (10 or 11)),
+    check ( phone ~ '^(?:\+32|0)[1-9][0-9\s.-]{7,11}$'),
 
     ADD CONSTRAINT restaurants_description_min_length
     check ( length(trim(description))>=10 ),
