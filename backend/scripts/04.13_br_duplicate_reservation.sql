@@ -21,7 +21,7 @@ returns trigger as $$
 
 
 
-create trigger trigger_duplicate_reservation
+create or replace trigger trigger_duplicate_reservation
     before insert or update on reservations
     for each row
     execute function tgr_check_duplicate_reservation();

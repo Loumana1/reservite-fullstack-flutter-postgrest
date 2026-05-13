@@ -14,7 +14,7 @@ returns trigger as $$
     end;
     $$ language plpgsql;
 
-create trigger table_unique_restaurant
+create or replace trigger table_unique_restaurant
     before update on tables
     for each row
 execute function table_unique_restaurant();

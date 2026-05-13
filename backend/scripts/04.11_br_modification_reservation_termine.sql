@@ -9,7 +9,7 @@ returns trigger as $$
     end;
     $$ language plpgsql;
 
-create trigger trigger_modification_reservation
+create or replace trigger trigger_modification_reservation
     before update on reservations
     for each row
     execute  function tgr_check_modification_reservation();

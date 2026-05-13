@@ -10,7 +10,7 @@ create or replace function service_unique_restaurant()
     $$ language plpgsql;
 
 
-create trigger service_unique_restaurant
+create or replace trigger service_unique_restaurant
     before update on services
     for each row
 

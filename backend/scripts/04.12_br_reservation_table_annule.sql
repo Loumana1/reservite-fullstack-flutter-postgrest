@@ -13,7 +13,7 @@ returns trigger as $$
     end;
     $$ language plpgsql;
 
-create trigger trigger_table_assigment
+create or replace trigger trigger_table_assigment
     before insert or update on reservation_tables
     for each row
     execute function tgr_check_table_assigment();

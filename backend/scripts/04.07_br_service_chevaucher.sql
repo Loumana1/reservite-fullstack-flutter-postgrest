@@ -17,7 +17,7 @@ returns trigger as $$
     end;
     $$language plpgsql;
 
-create trigger trigger_service_overlap
+create or replace trigger trigger_service_overlap
     before insert or update on services
     for each row
     execute function tgr_check_service_overlap()

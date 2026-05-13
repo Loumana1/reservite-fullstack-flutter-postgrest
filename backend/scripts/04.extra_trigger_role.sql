@@ -13,7 +13,7 @@ returns trigger as $$
     end;
     $$ language plpgsql;
 
-create trigger modification_role
+create or replace trigger modification_role
     before update on users
     for each row
 execute function modification_role();

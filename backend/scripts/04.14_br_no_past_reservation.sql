@@ -27,6 +27,6 @@ begin
 end;
 $$language plpgsql;
 
-create trigger reservation_to_past
+create or replace trigger reservation_to_past
     before insert on reservations
     for each row execute function trg_check_reservation_to_past()
