@@ -31,7 +31,7 @@ returns trigger as $$
             or id = new.table;
 
             if total_capacity < res_guests then
-                raise exception 'Capacite insuffusante : % places pour % convives.', total_capacity;
+                raise exception 'Capacite insuffusante : % places pour % convives.', total_capacity , res_guests;
             end if;
         end if;
         return  new ;
