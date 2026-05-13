@@ -40,10 +40,10 @@ alter table restaurants
     ADD CONSTRAINT restaurants_city_min_length
     check(length(trim(city))>=3),
 
-    --A ameriorrer avec regex
 
-    ADD CONSTRAINT restaurants_phone_min_length
-    check ( length(trim(phone)) == (10 or 11)),
+
+    ADD CONSTRAINT restaurants_phone_format
+    check (phone ~ '^(?:\+32|0)[1-9][0-9\s.-]{7,11}$'),
 
     ADD CONSTRAINT restaurants_description_min_length
     check ( length(trim(description))>=10 ),
@@ -53,7 +53,7 @@ alter table restaurants
 
     ADD CONSTRAINT  restaurants_price_range
     check(price_range is null
-              or price_range BETWEEN 1 AND 5.0),
+              or price_range BETWEEN 1.0 AND 4.0),
 
     ADD CONSTRAINT restaurants_slot_duration
     check ( slot_duration in ( 10,15,20, 30,60));
@@ -69,7 +69,7 @@ alter table services
 
 
     ADD CONSTRAINT service_min_length
-        check (end_time >=  start_time+interval('1 hour') );
+        check (end_time >=  start_time + interval '1 hour' );
 
 
 --*********************************************************************************************************************************************************************
