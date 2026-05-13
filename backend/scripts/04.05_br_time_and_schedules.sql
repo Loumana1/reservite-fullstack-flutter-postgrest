@@ -18,6 +18,6 @@ create or replace function trg_check_reservation_slot_ok()
     end;
 $$ language plpgsql;
 
-create trigger br_05_reservation_slot_ok
+create or replace trigger br_05_reservation_slot_ok
     before insert or update on reservations
     for each row execute function trg_check_reservation_slot_ok();
