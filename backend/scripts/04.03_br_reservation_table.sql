@@ -1,5 +1,5 @@
 -- br03
-create or replace function trg_check_tables_insert()
+create or replace function trg_check_reservation_table_same_restaurant()
     returns trigger as $$
 
     declare
@@ -23,3 +23,7 @@ create or replace function trg_check_tables_insert()
         RETURN NEW;
     END;
 $$ LANGUAGE plpgsql;
+
+create trigger br_03_tables_same_restaurant
+    before insert or update on reservation_tables
+    for each row execute function trg_check_reservation_table_same_restaurant();
