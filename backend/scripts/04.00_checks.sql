@@ -2,7 +2,11 @@
                                                      --USERS--
 --********************************************************************************************************************************************************************
 alter table users
+    drop constraint if exists users_full_name_min_length;
+alter table users
+    drop constraint if exists users_passwords_strength;
 
+alter table users
     add constraint users_full_name_min_length
     check ( length(trim(full_name)) >= 3) ,
 
@@ -17,7 +21,10 @@ alter table users
 --*********************************************************************************************************************************************************************
                                                     --TABLES--
 --**********************************************************************************************************************************************************************
-
+alter table tables
+    drop constraint if exists table_number_positive;
+alter table tables
+    drop constraint if exists table_capacity_positive;
 alter table tables
     add constraint table_number_positive
     check ( table_number > 0) ,
@@ -28,6 +35,22 @@ alter table tables
 --*********************************************************************************************************************************************************************
                                                    --RESTAURANT--
 --**********************************************************************************************************************************************************************
+alter table restaurants
+    drop constraint if exists restaurants_name_min_length ;
+alter table restaurants
+    drop constraint if exists restaurants_address_min_length;
+alter table restaurants
+    drop constraint if exists restaurants_city_min_length;
+alter table restaurants
+    drop constraint if exists restaurants_phone_format;
+alter table restaurants
+    drop constraint if exists restaurants_description_min_length;
+alter table restaurants
+    drop constraint if exists restaurants_rating;
+alter table restaurants
+    drop constraint if exists restaurants_price_range;
+alter table restaurants
+    drop constraint if exists restaurants_slot_duration;
 
 
 alter table restaurants
@@ -40,10 +63,8 @@ alter table restaurants
     ADD CONSTRAINT restaurants_city_min_length
     check(length(trim(city))>=3),
 
-
-
     ADD CONSTRAINT restaurants_phone_format
-    check (phone ~ '^(?:\+32|0)[1-9][0-9\s.-]{7,11}$'),
+    check (phone ~ '^(\+32\s?|0)[1-9][0-9\s.-]{7,11}$'),
 
     ADD CONSTRAINT restaurants_description_min_length
     check ( length(trim(description))>=10 ),
@@ -62,7 +83,10 @@ alter table restaurants
 --*********************************************************************************************************************************************************************
                                                                 --SERVICES--
 --**********************************************************************************************************************************************************************
-
+alter table services
+    drop constraint if exists services_day_of_week;
+alter table services
+    drop constraint if exists service_min_length;
 alter table services
     ADD CONSTRAINT services_day_of_week
         check( day_of_week BETWEEN 1 AND 7),
@@ -75,6 +99,10 @@ alter table services
 --*********************************************************************************************************************************************************************
                                                                     --RESERVATION--
 --**********************************************************************************************************************************************************************
+alter table reservations
+    drop constraint if exists number_guest_positive;
+alter table reservations
+    drop constraint if exists special_request_length;
 
 alter table reservations
     add constraint number_guest_positive
