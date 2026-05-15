@@ -15,4 +15,8 @@ class Table {
       capacity: json['capacity'],
     );
   }
+
+  static Future<Table> save(int? id, int restaurantId, int tableNumber, int capacity) async {
+
+  }
 }

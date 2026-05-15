@@ -11,10 +11,14 @@ class Service {
   factory Service.fromJson(Map<String, dynamic> json) {
     return Service(
       id: json['id'],
-      restaurantId: json ['restaurantId'],
+      restaurantId: json['restaurantId'],
       dayOfWeek: json['dayOfWeek'],
       startTime: json['startTime'],
       endTime: json['endTime'],
     );
-}
+  }
+
+  static Future<Service> save(int? id, int restaurantId, int dayOfWeek) async {}
+
+  Future<void> delete() async {}
 }
