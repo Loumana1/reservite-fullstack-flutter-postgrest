@@ -1,24 +1,4 @@
 
-
-
-
-CREATE OR REPLACE FUNCTION get_service_for_reservation(res_restaurant INT, res_datetime TIMESTAMP) RETURNS INT AS $$
-DECLARE
-    svc_id INT;
-BEGIN
-    SELECT id INTO svc_id
-    FROM services
-    WHERE restaurant = res_restaurant
-      AND day_of_week = EXTRACT(ISODOW FROM res_datetime)
-      AND res_datetime::TIME >= start_time
-      AND res_datetime::TIME < end_time
-    LIMIT 1;
-    RETURN svc_id;
-END;
-$$ LANGUAGE plpgsql;
-
---br06
-
 create or replace function trg_check_table_conflict()
     returns trigger as $$
     declare
