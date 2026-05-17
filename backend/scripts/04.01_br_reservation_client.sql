@@ -13,7 +13,7 @@ returns trigger as $$
         ) then
             return new ;
         else
-            raise exception 'Reservation must be linked to a user with role client';
+            raise exception 'Une réservation doit appartenir à un client.';
         end if;
     end;
     $$ language plpgsql;
