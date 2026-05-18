@@ -14,4 +14,11 @@ class Params {
     await Hive.openBox(_box);
   }
 
+  static Future<void> setValue(String key, dynamic value) async {
+    var box = Hive.box(_box);
+    await box.put(key, value);
+    await box.compact();
+  }
+
+
 }
