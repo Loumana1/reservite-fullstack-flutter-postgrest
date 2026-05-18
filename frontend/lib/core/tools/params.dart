@@ -25,6 +25,12 @@ class Params {
     return box.get(key, defaultValue: defaultValue);
   }
 
+  static Future<void> clearValue(String key) async {
+    var box = Hive.box(_box);
+    await box.delete(key);
+  }
+
+
 
 
 
