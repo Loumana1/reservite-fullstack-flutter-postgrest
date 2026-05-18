@@ -35,5 +35,8 @@ class Params {
     await box.clear();
   }
 
-
+  static Future<void> close() async {
+    var box = Hive.box(_box);
+    await box.close();
+  }
 }
