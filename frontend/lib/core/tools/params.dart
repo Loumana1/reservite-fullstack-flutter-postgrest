@@ -30,8 +30,10 @@ class Params {
     await box.delete(key);
   }
 
-
-
+  static Future<void> clearAll() async {
+    var box = Hive.box(_box);
+    await box.clear();
+  }
 
 
 }
