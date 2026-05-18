@@ -20,5 +20,12 @@ class Params {
     await box.compact();
   }
 
+  static dynamic getValue(String key, {dynamic defaultValue}) {
+    var box = Hive.box(_box);
+    return box.get(key, defaultValue: defaultValue);
+  }
+
+
+
 
 }
