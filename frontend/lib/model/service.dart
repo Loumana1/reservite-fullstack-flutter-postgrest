@@ -18,7 +18,9 @@ class Service {
     );
   }
 
-  static Future<Service> save(int? id, int restaurantId, int dayOfWeek) async {}
+  static Future<Service> save(int? id, int restaurantId, int dayOfWeek) async {
+
+}
 
   Future<void> delete() async {}
 }
