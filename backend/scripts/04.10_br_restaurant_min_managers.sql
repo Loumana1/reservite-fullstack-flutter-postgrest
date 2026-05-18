@@ -1,4 +1,4 @@
-create  or replace function trg_check_restaurant_mananger_count()
+create  or replace function trg_check_min_manager_on_restaurants()
     returns trigger as $$
     declare
         manager_count INT;
@@ -16,11 +16,9 @@ create  or replace function trg_check_restaurant_mananger_count()
     end;
     $$language plpgsql;
 
-create or replace function trg_check_on_managers_count()
+create or replace function trg_check_min_manager_on_managers()
    returns trigger as $$
-    declare
-        manager_count INT;
-        res_id INT;
+
     begin
 
         if (old.restaurant is not null and not exists(
@@ -37,18 +35,21 @@ create or replace function trg_check_on_managers_count()
 
             )
         then
-            raise exception 'Min 1 manager necessaire pour valider un restaurant';
+            raise exception 'Un restaurant ne peut pas se retrouver sans manager.';
         end if;
-
+        RETURN NULL;
     end;
     $$language plpgsql;
 
-create constraint  trigger min_manager_restaurants
+drop trigger if exists min_manager_on_restaurants on restaurants;
+drop trigger if exists min_manager_on_managers on restaurant_managers;
+
+create constraint  trigger min_manager_on_restaurants
     after insert or update  on restaurants
     deferrable initially deferred
-for each row execute function trg_check_restaurant_mananger_count();
+for each row execute function trg_check_min_manager_on_restaurants();
 
-create constraint  trigger min_manager_min_managers
-  after  delete or update  on restaurants
+create constraint  trigger min_manager_on_managers
+  after  delete or update  on restaurant_managers
     deferrable initially deferred
-for each row execute function trg_check_on_managers_count();
+for each row execute function trg_check_min_manager_on_managers();
