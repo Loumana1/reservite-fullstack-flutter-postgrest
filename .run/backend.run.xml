@@ -4,24 +4,23 @@
     <script-file value="$PROJECT_DIR$/backend/scripts/02_security.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/03_tables_and_data.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.00_checks.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04.00_a_utils.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.01_br_reservation_client.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.03_br_reservation_table.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.02_br_reservation_capicity.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.04_br_reservation_service_hours.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.05_br_time_and_schedules.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.06_br_reservation_conflicts.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04.07_br_service_overlap.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.08_br_service_time_aligment.sql" />
-    <script-file value="$PROJECT_DIR$/backend/scripts/04.09_br_status_cycle.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.10_br_restaurant_min_managers.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04.11_br_reservation_termine_ou_annulee.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04.12_br_reservation_table_for_pending_or_cancelled.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.13_br_duplicate_reservation.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.14_br_no_past_reservation.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.extra_trigger_role.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.extra_trigger_service.sql" />
-    <script-file value="$PROJECT_DIR$/backend/scripts/04.07_br_service_overlap.sql" />
-    <script-file value="$PROJECT_DIR$/backend/scripts/04.11_br_reservation_termine_ou_annulee.sql" />
-    <script-file value="$PROJECT_DIR$/backend/scripts/04.12_br_reservation_table_for_pending_or_cancelled.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.extra_trigger_tables_unique_restaurant.sql" />
-    <script-file value="$PROJECT_DIR$/backend/scripts/04.00_a_utils.sql" />
     <script-mode>FILE</script-mode>
     <data-source id="6d275bb5-c69c-4f95-bc29-f6a29631655b" namespace="database/&quot;prbd-2526-c06&quot;" />
     <method v="2" />

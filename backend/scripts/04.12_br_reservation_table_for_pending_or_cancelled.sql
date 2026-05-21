@@ -13,7 +13,10 @@ returns trigger as $$
     end;
     $$ language plpgsql;
 
-create or replace trigger trigger_table_assigment
-    before insert or update on reservation_tables
+drop trigger if exists trigger_table_assigment on reservation_tables;
+
+create constraint trigger trigger_table_assigment
+    after insert or update on reservation_tables
+    deferrable  initially deferred
     for each row
-    execute function tgr_check_reservation_table_for_pending_or_cancelled()
+    execute function tgr_check_reservation_table_for_pending_or_cancelled();
