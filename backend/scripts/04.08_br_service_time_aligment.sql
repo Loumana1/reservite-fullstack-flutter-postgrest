@@ -7,9 +7,10 @@ returns trigger as $$
         from restaurants
         where id = new.restaurant;
 
-        if (date_part('minute', new.start_time)::int % slot != 0 )
-            or(date_part('minute', new.end_time)::int % slot != 0 )
-            then raise exception 'Horaire pas alignes sur % minutes !' , slot;
+        if not is_time_aligned_on_slot(new.start_time, slot)
+            or not is_time_aligned_on_slot(new.end_time, slot )
+            then
+                raise exception 'Horaire pas alignes sur % minutes !' , slot;
         end if;
 
         return new ;
@@ -17,7 +18,6 @@ returns trigger as $$
     $$ language plpgsql;
 
 
-create trigger trigger_service_simple
+create or replace trigger trigger_service_simple
     before insert or update on services
-    for each row
-    execute function tgr_check_service_alignment();
+    for each row execute function tgr_check_service_alignment();

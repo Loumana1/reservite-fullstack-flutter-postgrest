@@ -1,24 +1,4 @@
 
-
-
-
-CREATE OR REPLACE FUNCTION get_service_for_reservation(res_restaurant INT, res_datetime TIMESTAMP) RETURNS INT AS $$
-DECLARE
-    svc_id INT;
-BEGIN
-    SELECT id INTO svc_id
-    FROM services
-    WHERE restaurant = res_restaurant
-      AND day_of_week = EXTRACT(ISODOW FROM res_datetime)
-      AND res_datetime::TIME >= start_time
-      AND res_datetime::TIME < end_time
-    LIMIT 1;
-    RETURN svc_id;
-END;
-$$ LANGUAGE plpgsql;
-
---br06
-
 create or replace function trg_check_table_conflict()
     returns trigger as $$
     declare
@@ -29,6 +9,7 @@ create or replace function trg_check_table_conflict()
         current_service_id INT;
         conflict_count INT;
     begin
+        conflict_count := 0 ;
     if TG_TABLE_NAME = 'reservations' then
         res_id := NEW.id;
         current_status := NEW.status;
@@ -82,10 +63,14 @@ create or replace function trg_check_table_conflict()
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS br_06_table_conflict_res ON reservations;
+
 CREATE CONSTRAINT TRIGGER br_06_table_conflict_res
     AFTER INSERT OR UPDATE ON reservations
     DEFERRABLE INITIALLY DEFERRED
     FOR EACH ROW EXECUTE FUNCTION trg_check_table_conflict();
+
+DROP TRIGGER IF EXISTS br_06_table_conflict_rt ON reservation_tables;
 
 CREATE CONSTRAINT TRIGGER br_06_table_conflict_rt
     AFTER INSERT OR UPDATE ON reservation_tables

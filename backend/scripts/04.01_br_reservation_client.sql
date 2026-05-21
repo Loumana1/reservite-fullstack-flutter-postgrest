@@ -13,12 +13,12 @@ returns trigger as $$
         ) then
             return new ;
         else
-            raise exception 'Reservation must be linked to a user with role client';
+            raise exception 'Une réservation doit appartenir à un client.';
         end if;
     end;
     $$ language plpgsql;
 
-create trigger trigger_reservation_client_role
+create or replace trigger trigger_reservation_client_role
     before insert or update on reservations
     for each row
 execute function tgr_reservation_client_role();
