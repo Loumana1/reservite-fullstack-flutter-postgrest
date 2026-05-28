@@ -24,4 +24,9 @@ class SecurityNotifier extends AsyncNotifier<String?> {
     }
   }
 
+  void logOut() {
+    Params.clearValue('token');
+    state = const AsyncData(null);
+  }
+  
 }
