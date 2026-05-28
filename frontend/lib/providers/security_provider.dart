@@ -5,7 +5,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:prbd_2526_c06/core/tools/params.dart';
 import 'package:prbd_2526_c06/model/security.dart';
 
-final securityProvideer = AsyncNotifierProvider<SecurityNotifier , String?>(() => SecurityNotifier());
+final securityProvider = AsyncNotifierProvider<SecurityNotifier , String?>(() => SecurityNotifier());
 
 class SecurityNotifier extends AsyncNotifier<String?> {
 

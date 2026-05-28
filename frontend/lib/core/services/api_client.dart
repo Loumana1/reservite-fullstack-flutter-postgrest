@@ -1,9 +1,10 @@
 import 'dart:io';
 import 'dart:js_interop';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../tools/params.dart';
 
-String get baseUrl => kisWeb || !Platform.isAndroid
+String get baseUrl => kIsWeb || !Platform.isAndroid
     ? 'http://localhost:3000/rpc'
     : 'http://10.0.2.2:3000/rpc';
 
