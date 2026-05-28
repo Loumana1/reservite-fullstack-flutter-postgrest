@@ -4,7 +4,7 @@ import 'package:prbd_2526_c06/core/services/api_client.dart';
 
 class Security {
 
-  static Future<String?> login(String email, String password) async {
+  static Future<String?> login(String email , String password) async {
     final response = await ApiClient.post(
       'login' ,
       body: json.encode({'email': email, 'password': password}),
