@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ffi';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:prbd_2526_c06/core/tools/params.dart';
 import 'package:prbd_2526_c06/model/security.dart';
 
@@ -28,5 +29,17 @@ class SecurityNotifier extends AsyncNotifier<String?> {
     Params.clearValue('token');
     state = const AsyncData(null);
   }
-  
-}
+
+  bool get isLoggedIn => state.value != null;
+
+  String? get role {
+    if (state.value == null)
+      return null;
+    try {
+      return JwtDecoder.decode(state.value!)['role'];
+    } catch (e) {
+      return null;
+    }
+
+    }
+  }
