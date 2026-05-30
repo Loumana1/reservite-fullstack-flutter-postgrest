@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:prbd_2526_c06/core/tools/params.dart';
@@ -20,6 +19,7 @@ class SecurityNotifier extends AsyncNotifier<String?> {
     try {
       var token = await Security.login(email, password);
       Params.setValue('token', token);
+      state = AsyncData(token);
     } catch (e) {
       state = AsyncError("Erreur de Connexion", StackTrace.current);
     }

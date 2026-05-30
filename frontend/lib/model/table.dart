@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import '../core/services/api_client.dart';
+
 class Table {
 
   final int id;
@@ -7,7 +11,7 @@ class Table {
 
   Table({required this.id, required this.resaurantId, required this.tableNumble, required this.capacity});
 
-  factory Table.FromJson(Map<String, dynamic> json){
+  factory Table.fromJson(Map<String, dynamic> json){
     return Table(
       id: json['id'],
       resaurantId: json['restaurant'],
@@ -17,6 +21,15 @@ class Table {
   }
 
   static Future<Table> save(int? id, int restaurantId, int tableNumber, int capacity) async {
-
+    final response = await ApiClient.post('save_table', body: json.encode({
+      if (id != null) 'table_id': id,
+      'restaurant_id': restaurantId,
+      'table_number': tableNumber,
+      'capacity': capacity,
+    }));
+    if (response.statusCode == 200) {
+      return Table.fromJson(json.decode(response.body));
+    }
+    throw Exception('Failed to save table');
   }
 }

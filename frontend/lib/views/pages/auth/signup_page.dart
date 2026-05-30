@@ -1,24 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('fr_FR', null);
   runApp(
-    MaterialApp(
+    const MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      home: const SignupMockupScreen(),
+      home: SignupPage(),
     ),
   );
 }
 
-class SignupMockupScreen extends StatelessWidget {
-  const SignupMockupScreen({super.key});
+class SignupPage extends ConsumerStatefulWidget {
+  const SignupPage({super.key});
 
+  @override
+  ConsumerState<SignupPage> createState() => _signupPageState();
+}
+
+class _signupPageState extends ConsumerState<SignupPage> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

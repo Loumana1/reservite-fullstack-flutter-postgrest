@@ -1,7 +1,8 @@
 import 'dart:io';
-import 'dart:js_interop';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
 import '../tools/params.dart';
 
 String get baseUrl => kIsWeb || !Platform.isAndroid

@@ -2,26 +2,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import 'package:prbd_2526_c06/core/services/api_client.dart';
+import 'package:prbd_2526_c06/model/user.dart';
+import 'package:prbd_2526_c06/providers/security_provider.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('fr_FR', null);
   runApp(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
+    const ProviderScope(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: LoginPage(),
       ),
-      home: const LoginPage(),
     ),
   );
 }
 
-class LoginPage extends ConsumerWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  Widget build(BuildContext context , WidgetRef ref) {
+  ConsumerState<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends ConsumerState<LoginPage> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext contexti) {
     final theme = Theme.of(context);
     final simulatedTime = DateTime(2024, 12, 4, 16, 0);
 
@@ -93,6 +110,7 @@ class LoginPage extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
+                        controller: _emailController,
                         decoration: const InputDecoration(
                           labelText: 'Email',
                           border: OutlineInputBorder(),
@@ -102,6 +120,7 @@ class LoginPage extends ConsumerWidget {
                       ),
                       const SizedBox(height: 10),
                       TextFormField(
+                        controller: _passwordController,
                         decoration: const InputDecoration(
                           labelText: 'Mot de passe',
                           border: OutlineInputBorder(),
@@ -111,7 +130,26 @@ class LoginPage extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton(
-                        onPressed: () {},
+
+
+                        onPressed: () async {
+                          if(User.validateEmail(_emailController.text) != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Email invalide')));
+                            return;
+                          }
+
+                          await ref.read(securityProvider.notifier)
+                          .login(_emailController.text.trim(), _passwordController.text);
+
+                          if(ref.read(securityProvider).hasError && context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Identifiants incorrects'))
+                            );
+                          }
+                        },
+
+
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
@@ -207,7 +245,15 @@ class LoginPage extends ConsumerWidget {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: () async {
+
+                        await ApiClient.post('reset_database', anonymous: true);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Base reinitialisee !'))
+                          );
+                        }
+                      },
                       icon: const Icon(Icons.refresh),
                       label: const Text('Réinitialiser la base de données'),
                       style: OutlinedButton.styleFrom(
