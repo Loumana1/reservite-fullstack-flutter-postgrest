@@ -20,13 +20,17 @@ class MyApp extends ConsumerWidget {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
       ),
-      initialRoute: securityNotifier.isLoggedIn ? '/login'
-      : (securityNotifier.role == 'manager' ? '/home_manager' : '/home_client'),
+      initialRoute: securityNotifier.isLoggedIn
+          ? (securityNotifier.role == 'manager'
+              ? '/home_manager'
+              : '/home_client')
+          : '/login',
       routes: {
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignupPage(),
         '/home_client': (context) => const HomeClientPage(),
         '/home_manager': (context) => const HomeManagerPage(),
-      });
+      },
+    );
   }
 }

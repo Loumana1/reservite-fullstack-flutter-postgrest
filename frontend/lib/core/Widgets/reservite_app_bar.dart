@@ -57,7 +57,7 @@ class ReserviteAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 simulatedAsync.when(
                   data: formatSimulatedTime,
                   loading: () => '…',
-                  error: (_, __) => '—',
+                  error: (_, _) => '—',
                 ),
                 style: TextStyle(
                   fontSize: 10,

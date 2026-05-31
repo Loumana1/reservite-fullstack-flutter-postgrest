@@ -22,7 +22,7 @@ class Table {
 
   static Future<Table> save(int? id, int restaurantId, int tableNumber, int capacity) async {
     final response = await ApiClient.post('save_table', body: json.encode({
-      if (id != null) 'table_id': id,
+      'table_id': ?id,
       'restaurant_id': restaurantId,
       'table_number': tableNumber,
       'capacity': capacity,

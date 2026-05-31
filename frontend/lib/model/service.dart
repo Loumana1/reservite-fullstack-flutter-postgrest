@@ -24,7 +24,7 @@ class Service {
 
   static Future<Service> save(int? id, int restaurantId, int dayOfWeek, String startTime, String endTime) async {
     final response = await ApiClient.post('save_service', body: json.encode({
-      if (id != null) 'service_id': id,
+      'service_id': ?id,
       'restaurant_id': restaurantId,
       'day_of_week': dayOfWeek,
       'start_time': startTime,

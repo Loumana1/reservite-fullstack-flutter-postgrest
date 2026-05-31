@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:prbd_2526_c06/core/services/api_client.dart';
 import 'package:prbd_2526_c06/model/user.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
-
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -25,25 +23,62 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  Future<void> _loginAs(String email) async {
-    await ref.read(securityProvider.notifier).login(email, 'Password1,');
-    if(!context.mounted) return;
+  Future<void> _handleLogin(Future<void> Function() loginAction) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    await loginAction();
+
+    if (!mounted) return;
+
     final notifier = ref.read(securityProvider.notifier);
-    if(notifier.isLoggedIn) {
-      Navigator.pushReplacementNamed(
-          context,
-          notifier.role == 'manager' ? '/home_manager' : '/home_client',
+    if (notifier.isLoggedIn) {
+      navigator.pushReplacementNamed(
+        notifier.role == 'manager' ? '/home_manager' : '/home_client',
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Echec de la connection auto')),
-      );
+      return;
     }
+
+    final message = ref.read(securityProvider).hasError
+        ? 'Identifiants incorrects'
+        : 'Echec de la connexion';
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _submitLogin() async {
+    final emailError = User.validateEmail(_emailController.text);
+    if (emailError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(emailError)),
+      );
+      return;
+    }
+
+    await _handleLogin(
+      () => ref.read(securityProvider.notifier).login(
+            _emailController.text.trim(),
+            _passwordController.text,
+          ),
+    );
+  }
+
+  Future<void> _loginAs(String email) async {
+    await _handleLogin(
+      () => ref.read(securityProvider.notifier).login(email, 'Password1,'),
+    );
+  }
+
+  Future<void> _resetDatabase() async {
+    final messenger = ScaffoldMessenger.of(context);
+    await ApiClient.post('reset_database', anonymous: true);
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Base reinitialisee !')),
+    );
   }
 
   @override
-  Widget build(BuildContext contexti) {
-    final theme = Theme.of(contexti);
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final simulatedTime = DateTime(2024, 12, 4, 16, 0);
 
     return Scaffold(
@@ -134,42 +169,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton(
-
-
-                        onPressed: () async {
-                          if(User.validateEmail(_emailController.text) != null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Email invalide')));
-                            return;
-                          }
-
-                          await ref.read(securityProvider.notifier)
-                          .login(_emailController.text.trim(), _passwordController.text);
-
-                          if (!context.mounted) return;
-                          final notifier = ref.read(securityProvider.notifier);
-
-                          if (notifier.isLoggedIn) {
-                            Navigator.pushReplacementNamed(
-                              context,
-                              notifier.role == 'manager' ? '/home_manager' : '/home_client',
-                            );
-                            return;
-                          }
-
-                          if(ref.read(securityProvider).hasError && context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Identifiants incorrects'))
-                            );
-                          }
-                        },
-
-
+                        onPressed: _submitLogin,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: const Text('Se connecter'),
-
                       ),
                       const SizedBox(height: 6),
                       TextButton(
@@ -261,15 +265,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () async {
-
-                        await ApiClient.post('reset_database', anonymous: true);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Base reinitialisee !'))
-                          );
-                        }
-                      },
+                      onPressed: _resetDatabase,
                       icon: const Icon(Icons.refresh),
                       label: const Text('Réinitialiser la base de données'),
                       style: OutlinedButton.styleFrom(

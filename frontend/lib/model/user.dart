@@ -17,18 +17,14 @@ class User {
   }
 
   static String? validateEmail(String? value) {
-    if (value == null || value.trim().isEmpty)
-      return 'L\'email est requis';
-    if (!value.contains("@"))
-      return 'Format d\'email invalide';
+    if (value == null || value.trim().isEmpty) return 'L\'email est requis';
+    if (!value.contains("@")) return 'Format d\'email invalide';
     return null;
   }
 
   static String? validatePassword(String? value) {
-    if (value == null || value.isEmpty)
-      return 'Le mot de passe est requis';
-    if (value.length < 6)
-      return 'Doit contenir au moins 6 caracteres';
+    if (value == null || value.isEmpty)  return 'Le mot de passe est requis';
+    if (value.length < 6) return 'Doit contenir au moins 6 caracteres';
     return null;
   }
 }

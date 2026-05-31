@@ -33,13 +33,11 @@ class SecurityNotifier extends AsyncNotifier<String?> {
   bool get isLoggedIn => state.value != null;
 
   String? get role {
-    if (state.value == null)
-      return null;
+    if (state.value == null) return null;
     try {
       return JwtDecoder.decode(state.value!)['role'];
     } catch (e) {
       return null;
     }
-
-    }
   }
+}
