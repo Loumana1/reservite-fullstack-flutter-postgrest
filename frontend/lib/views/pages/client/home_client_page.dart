@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
+import 'package:prbd_2526_c06/views/pages/client/reservation_details_page.dart';
 
 class HomeClientPage extends ConsumerWidget {
   const HomeClientPage({super.key});
+
+  void _openDetails(BuildContext context, int reservationId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ReservationDetailsPage(reservationId: reservationId),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -102,7 +112,7 @@ class HomeClientPage extends ConsumerWidget {
                   Card(
                     margin: const EdgeInsets.only(bottom: 16),
                     child: InkWell(
-                      onTap: () {},
+                      onTap: () => _openDetails(context, 1),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Row(
@@ -164,7 +174,7 @@ class HomeClientPage extends ConsumerWidget {
                   Card(
                     margin: const EdgeInsets.only(bottom: 16),
                     child: InkWell(
-                      onTap: () {},
+                      onTap: () => _openDetails(context, 2),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Row(
@@ -226,7 +236,7 @@ class HomeClientPage extends ConsumerWidget {
                   Card(
                     margin: const EdgeInsets.only(bottom: 16),
                     child: InkWell(
-                      onTap: () {},
+                      onTap: () => _openDetails(context, 3),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Row(
@@ -288,7 +298,7 @@ class HomeClientPage extends ConsumerWidget {
                   Card(
                     margin: const EdgeInsets.only(bottom: 16),
                     child: InkWell(
-                      onTap: () {},
+                      onTap: () => _openDetails(context, 4),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Row(
