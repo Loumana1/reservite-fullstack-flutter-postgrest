@@ -6,18 +6,6 @@ import 'package:prbd_2526_c06/core/services/api_client.dart';
 import 'package:prbd_2526_c06/model/user.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('fr_FR', null);
-  runApp(
-    const ProviderScope(
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: LoginPage(),
-      ),
-    ),
-  );
-}
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -37,9 +25,25 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
+  Future<void> _loginAs(String email) async {
+    await ref.read(securityProvider.notifier).login(email, 'Password1,');
+    if(!context.mounted) return;
+    final notifier = ref.read(securityProvider.notifier);
+    if(notifier.isLoggedIn) {
+      Navigator.pushReplacementNamed(
+          context,
+          notifier.role == 'manager' ? '/home_manager' : '/home_client',
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Echec de la connection auto')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext contexti) {
-    final theme = Theme.of(context);
+    final theme = Theme.of(contexti);
     final simulatedTime = DateTime(2024, 12, 4, 16, 0);
 
     return Scaffold(
@@ -142,6 +146,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           await ref.read(securityProvider.notifier)
                           .login(_emailController.text.trim(), _passwordController.text);
 
+                          if (!context.mounted) return;
+                          final notifier = ref.read(securityProvider.notifier);
+
+                          if (notifier.isLoggedIn) {
+                            Navigator.pushReplacementNamed(
+                              context,
+                              notifier.role == 'manager' ? '/home_manager' : '/home_client',
+                            );
+                            return;
+                          }
+
                           if(ref.read(securityProvider).hasError && context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Identifiants incorrects'))
@@ -154,10 +169,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: const Text('Se connecter'),
+
                       ),
                       const SizedBox(height: 6),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () => Navigator.pushNamed(context, '/signup'),
                         child: const Text(
                           'Pas encore de compte ? S\'inscrire',
                         ),
@@ -194,7 +210,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () {},
+                          onPressed: () => _loginAs('brlacroix@epfc.eu'),
                           icon: const Icon(Icons.person),
                           label: const Text('Client (Bruno)'),
                           style: OutlinedButton.styleFrom(
@@ -205,7 +221,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () {},
+                          onPressed: () => _loginAs('mamichel@epfc.eu'),
                           icon: const Icon(Icons.person),
                           label: const Text('Client (Marc)'),
                           style: OutlinedButton.styleFrom(
@@ -220,7 +236,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () {},
+                          onPressed: () => _loginAs('bepenelle@epfc.eu'),
                           icon: const Icon(Icons.manage_accounts),
                           label: const Text('Manager (Benoît)'),
                           style: OutlinedButton.styleFrom(
@@ -231,7 +247,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () {},
+                          onPressed: () => _loginAs('gedielman@epfc.eu'),
                           icon: const Icon(Icons.manage_accounts),
                           label: const Text('Manager (Geoffrey)'),
                           style: OutlinedButton.styleFrom(

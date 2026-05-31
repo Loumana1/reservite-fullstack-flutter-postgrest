@@ -3,25 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('fr_FR', null);
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: SignupPage(),
-    ),
-  );
-}
 
 class SignupPage extends ConsumerStatefulWidget {
   const SignupPage({super.key});
 
   @override
-  ConsumerState<SignupPage> createState() => _signupPageState();
+  ConsumerState<SignupPage> createState() => _SignupPageState();
 }
 
-class _signupPageState extends ConsumerState<SignupPage> {
+class _SignupPageState extends ConsumerState<SignupPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
