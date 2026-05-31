@@ -4,6 +4,7 @@ import 'package:prbd_2526_c06/providers/security_provider.dart';
 import 'package:prbd_2526_c06/views/pages/auth/login_page.dart';
 import 'package:prbd_2526_c06/views/pages/auth/signup_page.dart';
 import 'package:prbd_2526_c06/views/pages/client/home_client_page.dart';
+import 'package:prbd_2526_c06/views/pages/manager/home_manager_page.dart';
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
@@ -25,9 +26,7 @@ class MyApp extends ConsumerWidget {
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignupPage(),
         '/home_client': (context) => const HomeClientPage(),
-        '/home_manager': (context) => const Scaffold(
-          body: Center(child: Text('Espace Manager (à faire)')),
-        )},
-    );
+        '/home_manager': (context) => const HomeManagerPage(),
+      });
   }
 }
