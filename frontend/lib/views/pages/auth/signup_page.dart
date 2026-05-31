@@ -140,7 +140,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                 ),
                 const SizedBox(height: 16),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () => Navigator.pushNamed(context, '/login'),
                   child: const Text('Déjà un compte ? Se connecter'),
                 ),
               ],
