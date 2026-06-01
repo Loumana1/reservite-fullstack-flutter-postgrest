@@ -24,6 +24,7 @@
     <script-file value="$PROJECT_DIR$/backend/scripts/04.utils.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/05.01_ep_users.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/05.03_ep_reservation.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/05.06_ep_time.sql" />
     <script-mode>FILE</script-mode>
     <data-source id="6d275bb5-c69c-4f95-bc29-f6a29631655b" namespace="database/&quot;prbd-2526-c06&quot;" />
     <method v="2" />
