@@ -68,6 +68,7 @@ class ReservationDetailsPage extends ConsumerWidget {
                                   child: ElevatedButton.icon(
                                     onPressed: () {
                                       // TODO: edit reservation
+                                      //
                                     },
                                     icon: const Icon(Icons.edit),
                                     label: const Text('Modifier'),
