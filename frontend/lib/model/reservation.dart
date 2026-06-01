@@ -94,4 +94,18 @@ class Reservation {
     if (r.statusCode != 200) throw Exception(r.body);
     return Reservation.fromJson(json.decode(r.body));
   }
+
+  Future<Reservation> confirm(List<int> tableIds) async {
+    final r = await ApiClient.post('confirm_reservation',
+        body: json.encode({'reservation_id': id, 'table_ids': tableIds}));
+    if (r.statusCode != 200) throw Exception(r.body);
+    return Reservation.fromJson(json.decode(r.body));
+  }
+
+  Future<Reservation> complete() async {
+    final r = await ApiClient.post('complete_reservation',
+        body: json.encode({'reservation_id': id}));
+    if (r.statusCode != 200) throw Exception(r.body);
+    return Reservation.fromJson(json.decode(r.body));
+  }
 }
