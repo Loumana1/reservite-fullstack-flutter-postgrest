@@ -32,7 +32,7 @@ void refreshReservationDetail(WidgetRef ref, int reservationId) {
   ref.invalidate(reservationDetailProvider(reservationId));
 }
 
-//annulation coté api
+
 Future<Reservation> cancelReservationDetail(
   WidgetRef ref,
   int reservationId,
