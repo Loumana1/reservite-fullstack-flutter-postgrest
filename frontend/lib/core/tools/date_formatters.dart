@@ -26,3 +26,11 @@ String statusLabel(String status) {
       return status;
   }
 }
+
+String formatSlotTime(DateTime dt) {
+  return DateFormat('HH:mm').format(dt);
+}
+
+String formatDateLong(DateTime dt) {
+  return DateFormat('EEEE dd/MM/yyyy', 'fr_FR').format(dt);
+}
