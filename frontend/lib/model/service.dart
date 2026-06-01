@@ -22,6 +22,19 @@ class Service {
     );
   }
 
+  /// Récupère tous les services d'un restaurant (tous jours confondus).
+  static Future<List<Service>> getByRestaurant(int restaurantId) async {
+    final response = await ApiClient.post(
+      'get_services',
+      body: json.encode({'restaurant_id': restaurantId}),
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> body = json.decode(response.body);
+      return body.map((e) => Service.fromJson(e as Map<String, dynamic>)).toList();
+    }
+    throw Exception('Failed to load services');
+  }
+
   static Future<Service> save(int? id, int restaurantId, int dayOfWeek, String startTime, String endTime) async {
     final response = await ApiClient.post('save_service', body: json.encode({
       'service_id': ?id,

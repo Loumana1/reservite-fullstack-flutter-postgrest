@@ -6,6 +6,7 @@ import 'package:prbd_2526_c06/core/widgets/status_badge.dart';
 import 'package:prbd_2526_c06/providers/client_reservations_provider.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
 import 'package:prbd_2526_c06/views/pages/client/reservation_details_page.dart';
+import 'package:prbd_2526_c06/views/pages/client/search_restaurants_page.dart';
 
 class HomeClientPage extends ConsumerWidget {
   const HomeClientPage({super.key});
@@ -31,7 +32,13 @@ class HomeClientPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () {},
+            tooltip: 'Rechercher un restaurant',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SearchRestaurantsPage(),
+              ),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -190,7 +197,12 @@ class HomeClientPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const SearchRestaurantsPage(),
+          ),
+        ),
         icon: const Icon(Icons.add),
         label: const Text('Nouvelle réservation'),
       ),

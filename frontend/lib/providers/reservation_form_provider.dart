@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prbd_2526_c06/model/reservation.dart';
 import 'package:prbd_2526_c06/model/slot.dart';
@@ -58,14 +57,12 @@ final reservationFormProvider = NotifierProvider.family<
   ReservationFormNotifier.new,
 );
 
-class ReservationFormNotifier extends Notifier<ReservationFormState> {
-  ReservationFormNotifier(this._restaurantId);
-
-  final int _restaurantId;
+class ReservationFormNotifier
+    extends FamilyNotifier<ReservationFormState, int> {
   Timer? _guestsDebounce;
 
   @override
-  ReservationFormState build() {
+  ReservationFormState build(int restaurantId) {
     final simAsync = ref.watch(simulatedTimeProvider);
     final reference = simAsync.value ?? DateTime.now();
     final initialDate = DateTime(reference.year, reference.month, reference.day);
@@ -73,7 +70,7 @@ class ReservationFormNotifier extends Notifier<ReservationFormState> {
     Future.microtask(() => loadSlots(initialDate));
 
     return ReservationFormState(
-      restaurantId: _restaurantId,
+      restaurantId: restaurantId,
       selectedDate: initialDate,
     );
   }
@@ -114,7 +111,6 @@ class ReservationFormNotifier extends Notifier<ReservationFormState> {
     state = state.copyWith(specialRequests: value);
   }
 
-
   void setGuests(int guests) {
     state = state.copyWith(guests: guests);
     _guestsDebounce?.cancel();
@@ -148,7 +144,9 @@ class ReservationFormNotifier extends Notifier<ReservationFormState> {
         specialRequests:
             state.specialRequests.isEmpty ? null : state.specialRequests,
       );
-      ref.read(clientReservationsProvider.notifier).patchReservation(reservation);
+      ref
+          .read(clientReservationsProvider.notifier)
+          .patchReservation(reservation);
       return reservation;
     } catch (_) {
       return null;
