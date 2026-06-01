@@ -100,3 +100,4 @@ end;
 $$ language plpgsql security definer;
 
 grant execute on function delete_service(integer) to manager;
+
