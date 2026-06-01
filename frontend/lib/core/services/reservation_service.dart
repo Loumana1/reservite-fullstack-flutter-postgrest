@@ -10,7 +10,9 @@ class ReservationService {
       'get_reservation',
       body: json.encode({'reservation_id': reservationId}),
     );
-    if (response.statusCode != 200) return null;
+    if (response.statusCode != 200) {
+      throw Exception(ApiClient.errorMessage(response));
+    }
     final data = json.decode(response.body);
     if (data == null) return null;
     return Reservation.fromJson(data as Map<String, dynamic>);

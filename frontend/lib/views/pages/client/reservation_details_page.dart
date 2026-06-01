@@ -6,6 +6,7 @@ import 'package:prbd_2526_c06/core/widgets/reservation_detail_card.dart';
 import 'package:prbd_2526_c06/core/widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/providers/reservation_detail_provider.dart';
 
+
 class ReservationDetailsPage extends ConsumerWidget {
   const ReservationDetailsPage({super.key, required this.reservationId});
 
@@ -26,7 +27,6 @@ class ReservationDetailsPage extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          if (detailAsync.isLoading) const LinearProgressIndicator(),
           Expanded(
             child: detailAsync.when(
               loading: () => const Center(
@@ -129,4 +129,5 @@ class ReservationDetailsPage extends ConsumerWidget {
       ),
     );
   }
+
 }

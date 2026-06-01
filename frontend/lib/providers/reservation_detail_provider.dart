@@ -20,12 +20,9 @@ FutureProvider.family<ReservationDetailState?, int>(
     final reservation = await ReservationService.getById(reservationId);
     if (reservation == null) return null;
 
-    final restaurant =
-    await ReservationService.getRestaurant(reservation.restaurantId);
-
     return ReservationDetailState(
       reservation: reservation,
-      restaurant: restaurant,
+      restaurant: null,
     );
   },
 );
