@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:prbd_2526_c06/core/services/api_client.dart';
+import '../core/services/api_client.dart';
 
 class Slot {
   const Slot({
