@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:prbd_2526_c06/core/tools/date_formatters.dart';
 import 'package:prbd_2526_c06/core/widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/core/widgets/status_badge.dart';
-import 'package:prbd_2526_c06/providers/client_reservations_provider.dart';
-import 'package:prbd_2526_c06/providers/security_provider.dart';
+import 'package:prbd_2526_c06/providers/manager_reservations_provider.dart';
 import 'package:prbd_2526_c06/views/pages/client/reservation_details_page.dart';
 
-class HomeClientPage extends ConsumerWidget {
-  const HomeClientPage({super.key});
+class RestaurantDashboardPage extends ConsumerWidget {
+  const RestaurantDashboardPage({super.key, required this.restaurantId});
+
+  final int restaurantId;
 
   void _openDetails(BuildContext context, int reservationId) {
     Navigator.push(
@@ -21,27 +23,18 @@ class HomeClientPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final reservations = ref.watch(clientReservationsProvider);
-    final statusFilter = ref.read(clientReservationsProvider.notifier).statusFilter;
+    final reservations = ref.watch(managerReservationsProvider(restaurantId));
+    final statusFilter =
+        ref.read(managerReservationsProvider(restaurantId).notifier).statusFilter;
 
     return Scaffold(
       appBar: ReserviteAppBar(
-        title: 'Mes réservations',
-        onRefresh: () => ref.read(clientReservationsProvider.notifier).refresh(),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Déconnexion',
-            onPressed: () {
-              ref.read(securityProvider.notifier).logOut();
-              Navigator.pushReplacementNamed(context, '/login');
-            },
-          ),
-        ],
+        title: 'Restaurant #$restaurantId',
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        onRefresh: () => refreshManagerReservations(ref, restaurantId),
       ),
       body: SafeArea(
         child: Column(
@@ -80,7 +73,7 @@ class HomeClientPage extends ConsumerWidget {
                 selected: {statusFilter},
                 onSelectionChanged: (selected) {
                   ref
-                      .read(clientReservationsProvider.notifier)
+                      .read(managerReservationsProvider(restaurantId).notifier)
                       .setStatusFilter(selected.first);
                 },
               ),
@@ -101,9 +94,8 @@ class HomeClientPage extends ConsumerWidget {
                     itemCount: list.length,
                     itemBuilder: (context, i) {
                       final r = list[i];
-                      final name =
-                          r.restaurantName ?? 'Restaurant #${r.restaurantId}';
-                      final city = r.restaurantCity ?? '';
+                      final clientName =
+                          r.clientFullName ?? 'Client #${r.clientId}';
 
                       return Card(
                         margin: const EdgeInsets.only(bottom: 16),
@@ -123,28 +115,12 @@ class HomeClientPage extends ConsumerWidget {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        name,
+                                        clientName,
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      if (city.isNotEmpty) ...[
-                                        const SizedBox(height: 4),
-                                        Row(
-                                          children: [
-                                            const Icon(Icons.location_on, size: 14),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              city,
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey[600],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
                                       const SizedBox(height: 4),
                                       Row(
                                         children: [
@@ -188,11 +164,6 @@ class HomeClientPage extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
-        icon: const Icon(Icons.add),
-        label: const Text('Nouvelle réservation'),
       ),
     );
   }

@@ -14,4 +14,17 @@ class TimeService {
     }
     return DateTime.parse(json.decode(response.body).toString());
   }
+  static Future<DateTime> setSimulatedTime(DateTime newTime) async {
+    final response = await ApiClient.post(
+      'set_simulated_time',
+      body: json.encode({
+        'new_time': newTime.toIso8601String(),
+      }),
+      anonymous: true,
+    );
+    if (response.statusCode != 200) {
+      throw Exception(ApiClient.errorMessage(response));
+    }
+    return DateTime.parse(json.decode(response.body).toString());
+  }
 }

@@ -2,9 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
+import 'package:prbd_2526_c06/views/pages/manager/restaurant_dashboard_page.dart';
 
 class HomeManagerPage extends ConsumerWidget {
   const HomeManagerPage({super.key});
+
+  void _openDashboard(BuildContext context, int restaurantId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RestaurantDashboardPage(restaurantId: restaurantId),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -116,7 +126,7 @@ class HomeManagerPage extends ConsumerWidget {
                   ],
                 ),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () {},
+                onTap: () => _openDashboard(context, 1),
               ),
             ),
             Card(
@@ -175,7 +185,7 @@ class HomeManagerPage extends ConsumerWidget {
                   ],
                 ),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () {},
+                onTap: () => _openDashboard(context, 2),
               ),
             ),
             Card(
@@ -208,7 +218,7 @@ class HomeManagerPage extends ConsumerWidget {
                   ],
                 ),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () {},
+                onTap: () => _openDashboard(context, 8),
               ),
             ),
           ],

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:prbd_2526_c06/core/services/api_client.dart';
 import 'package:prbd_2526_c06/model/user.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
+import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -68,8 +69,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     Future<void> _loginAs(String email) async {
       await _handleLogin(
-            () =>
-            ref.read(securityProvider.notifier).login(email, 'Password1,'),
+            () => ref.read(securityProvider.notifier).login(email, 'Password1,'),
       );
     }
 
@@ -84,7 +84,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     @override
     Widget build(BuildContext context) {
       final theme = Theme.of(context);
-      final simulatedTime = DateTime(2024, 12, 4, 16, 0);
+      final timeAsync = ref.watch(simulatedTimeProvider);
+      final simulatedTime = timeAsync.value ?? DateTime.now();
 
       return Scaffold(
         appBar: AppBar(
@@ -94,35 +95,76 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             IconButton(
               icon: const Icon(Icons.refresh),
               tooltip: 'Rafraîchir les données',
-              onPressed: () {},
+              onPressed: () => ref.read(simulatedTimeProvider.notifier).refresh(),
             ),
           ],
           elevation: 2,
           backgroundColor: theme.colorScheme.primary,
           foregroundColor: theme.colorScheme.onPrimary,
           surfaceTintColor: Colors.transparent,
-          flexibleSpace: Align(
-            alignment: Alignment.topCenter,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 2.0),
-                child: Tooltip(
-                  message:
-                  'Date/heure simulée utilisée pour les tests.\nCliquez pour modifier.',
-                  child: Text(
-                    DateFormat('EEEE dd/MM/yyyy HH:mm', 'fr_FR')
-                        .format(simulatedTime),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey[400],
-                      fontWeight: FontWeight.normal,
+
+            flexibleSpace: Align(
+              alignment: Alignment.topCenter,
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 2.0),
+                  child: Tooltip(
+                    message:
+                    'Date/heure simulée utilisée pour les tests.\nCliquez pour modifier.',
+                    child: GestureDetector(
+                      onTap: () async {
+                        final current = timeAsync.value ?? DateTime.now();
+                        final pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: current,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2030),
+                        );
+                        if (pickedDate == null || !mounted) return;
+                        final pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.fromDateTime(current),
+                        );
+                        if (pickedTime == null || !mounted) return;
+                        final dt = DateTime(
+                          pickedDate.year,
+                          pickedDate.month,
+                          pickedDate.day,
+                          pickedTime.hour,
+                          pickedTime.minute,
+                        );
+                        await ref
+                            .read(simulatedTimeProvider.notifier)
+                            .setTime(dt);
+                      },
+                      child: timeAsync.when(
+                        loading: () => const SizedBox(
+                          height: 12,
+                          width: 12,
+                          child: CircularProgressIndicator(strokeWidth: 1),
+                        ),
+                        error: (_, __) => const Text(
+                          'Heure indisponible',
+                          style: TextStyle(fontSize: 10, color: Colors.grey),
+                        ),
+                        data: (t) => Text(
+                          DateFormat('EEEE dd/MM/yyyy HH:mm', 'fr_FR')
+                              .format(t),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey[400],
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
+
+
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -15,4 +15,13 @@ class SimulatedTimeNotifier extends AsyncNotifier<DateTime> {
     state = const AsyncLoading();
     state = AsyncData(await build());
   }
+  Future<void> setTime(DateTime newTime) async {
+    state = const AsyncLoading();
+    try {
+      final t = await TimeService.setSimulatedTime(newTime);
+      state = AsyncData(t);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
 }
