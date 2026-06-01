@@ -35,9 +35,34 @@ class SecurityNotifier extends AsyncNotifier<String?> {
   String? get role {
     if (state.value == null) return null;
     try {
-      return JwtDecoder.decode(state.value!)['role'];
-    } catch (e) {
+      return JwtDecoder.decode(state.value!)['role'] as String?;
+    } catch (_) {
       return null;
     }
   }
-}
+
+
+  Future<void> signupAndLogin({
+    required String fullName,
+    required String email,
+    required String password,
+  }) async {
+    state = const AsyncLoading();
+    try {
+      await Security.signup(fullName, email, password);
+      await login(email, password);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow;
+    }
+  }
+
+    String? get errorMessage {
+      final err = state.error;
+      if (err == null) return null;
+      if (err is Exception) return err.toString().replaceFirst('Exception: ', '');
+      return err.toString();
+
+    }
+
+  }

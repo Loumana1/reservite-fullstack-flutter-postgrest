@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 import '../tools/params.dart';
 
@@ -37,5 +38,14 @@ class ApiClient {
       },
       body : body,
     );
+  }
+  static String errorMessage(http.Response response) {
+    try {
+      final body = json.decode(response.body);
+      if (body is Map && body['message'] != null) {
+        return body['message'].toString();
+      }
+    } catch (_) {}
+    return 'Erreur serveur (${response.statusCode})';
   }
 }
