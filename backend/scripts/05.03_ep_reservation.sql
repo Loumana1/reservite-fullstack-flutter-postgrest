@@ -101,3 +101,159 @@ end if;
 $$ language plpgsql security definer;
 
 grant execute on function get_reservations(integer, text) to client, manager;
+
+/* ===== save_reservation (create OU update) ===== */
+create or replace function save_reservation(restaurant_id integer,
+                                            datetime timestamp,
+                                            number_of_guests integer,
+                                            special_requests text default null,
+                                            reservation_id integer default null)
+    returns reservation_info as
+$$
+declare
+    v_uid integer;
+    new_id      integer;
+begin
+    perform auth.check_logged();
+    if auth.role() != 'client' then
+        raise exception 'Seuls les clients peuvent créer/modifier une réservation';
+    end if;
+    v_uid := auth.id()::integer;
+
+    if save_reservation.reservation_id is null then
+        -- création
+        insert into reservations (client, restaurant, datetime, number_of_guests,
+                                  special_requests, status)
+        values (v_uid, save_reservation.restaurant_id, save_reservation.datetime,
+                save_reservation.number_of_guests, save_reservation.special_requests,
+                'pending'::status_type)
+        returning id into new_id;
+    else
+        -- modification : doit appartenir au client + repasse à "pending"
+        update reservations
+        set restaurant       = save_reservation.restaurant_id,
+            datetime         = save_reservation.datetime,
+            number_of_guests = save_reservation.number_of_guests,
+            special_requests = save_reservation.special_requests,
+            status           = 'pending'::status_type
+        where id = save_reservation.reservation_id
+          and client = v_uid;
+
+        if not found then
+            raise exception 'Réservation non trouvée ou accès refusé';
+        end if;
+        -- on libère les tables éventuellement attribuées
+        delete from reservation_tables where reservation = save_reservation.reservation_id;
+        new_id := save_reservation.reservation_id;
+    end if;
+
+    return get_reservation(new_id);
+end;
+$$ language plpgsql security definer;
+
+grant execute on function save_reservation(integer, timestamp, integer, text, integer) to client;
+
+/*  cancel_reservation */
+create or replace function cancel_reservation(reservation_id integer)
+    returns reservation_info as
+$$
+declare
+    v_role text;
+    v_uid  integer;
+begin
+    perform auth.check_logged();
+    v_role := auth.role();
+    v_uid  := auth.id()::integer;
+
+    update reservations
+    set status = 'cancelled'::status_type
+    where id = cancel_reservation.reservation_id
+      and (
+        (v_role = 'client' and client = v_uid)
+            or
+        (v_role = 'manager' and exists(
+            select 1 from restaurant_managers rm
+            where rm.restaurant = reservations.restaurant and rm.manager = v_uid))
+        );
+
+    if not found then
+        raise exception 'Réservation non trouvée ou accès refusé';
+    end if;
+
+    -- on libère les tables
+    delete from reservation_tables where reservation = cancel_reservation.reservation_id;
+
+    return get_reservation(cancel_reservation.reservation_id);
+end;
+$$ language plpgsql security definer;
+
+grant execute on function cancel_reservation(integer) to client, manager;
+
+/* confirm_reservation (manager : pending -> confirmed + attribution tables)*/
+create or replace function confirm_reservation(reservation_id integer, table_ids int[])
+    returns reservation_info as
+$$
+declare
+    v_uid integer;
+    tid         integer;
+begin
+    perform auth.check_logged();
+    if auth.role() != 'manager' then
+        raise exception 'Seul un manager peut confirmer une réservation';
+    end if;
+    v_uid := auth.id()::integer;
+
+    if not exists(
+        select 1 from reservations res
+                          join restaurant_managers rm on rm.restaurant = res.restaurant
+        where res.id = confirm_reservation.reservation_id
+          and rm.manager = v_uid
+    ) then
+        raise exception 'Réservation non trouvée ou accès refusé';
+    end if;
+
+    update reservations set status = 'confirmed'::status_type
+    where id = confirm_reservation.reservation_id;
+
+    -- on libère puis on réassigne les tables
+    delete from reservation_tables where reservation = confirm_reservation.reservation_id;
+    if table_ids is not null then
+        foreach tid in array table_ids loop
+                insert into reservation_tables (reservation, "table")
+                values (confirm_reservation.reservation_id, tid);
+            end loop;
+    end if;
+
+    return get_reservation(confirm_reservation.reservation_id);
+end;
+$$ language plpgsql security definer;
+
+grant execute on function confirm_reservation(integer, int[]) to manager;
+
+/* complete_reservation (manager : confirmed -> completed) */
+create or replace function complete_reservation(reservation_id integer)
+    returns reservation_info as
+$$
+declare
+    v_uid integer;
+begin
+    perform auth.check_logged();
+    if auth.role() != 'manager' then
+        raise exception 'Seul un manager peut terminer une réservation';
+    end if;
+    v_uid := auth.id()::integer;
+
+    update reservations set status = 'completed'::status_type
+    where id = complete_reservation.reservation_id
+      and exists(select 1 from restaurant_managers rm
+                 where rm.restaurant = reservations.restaurant
+                   and rm.manager = v_uid);
+
+    if not found then
+        raise exception 'Réservation non trouvée ou accès refusé';
+    end if;
+    return get_reservation(complete_reservation.reservation_id);
+end;
+$$ language plpgsql security definer;
+
+grant execute on function complete_reservation(integer) to manager;
