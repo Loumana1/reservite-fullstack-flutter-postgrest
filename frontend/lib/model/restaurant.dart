@@ -5,7 +5,6 @@ import '../core/services/api_client.dart';
 class Restaurant {
 
   static const int maxSearchResults = 20;
-  
   const Restaurant({
     required this.id,
     required this.name,

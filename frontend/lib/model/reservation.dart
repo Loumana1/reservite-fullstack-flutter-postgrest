@@ -68,4 +68,30 @@ class Reservation {
     final List<dynamic> body = json.decode(r.body);
     return body.map((e) => Reservation.fromJson(e)).toList();
   }
+
+  static Future<Reservation> save({
+    required int restaurantId,
+    required DateTime datetime,
+    required int numberOfGuests,
+    String? specialRequests,
+    int? reservationId,
+  }) async {
+    final r = await ApiClient.post('save_reservation', body: json.encode({
+      'restaurant_id': restaurantId,
+      'datetime': datetime.toIso8601String(),
+      'number_of_guests': numberOfGuests,
+      if (specialRequests != null && specialRequests.isNotEmpty)
+        'special_requests': specialRequests,
+      if (reservationId != null) 'reservation_id': reservationId,
+    }));
+    if (r.statusCode != 200) throw Exception(r.body);
+    return Reservation.fromJson(json.decode(r.body));
+  }
+
+  Future<Reservation> cancel() async {
+    final r = await ApiClient.post('cancel_reservation',
+        body: json.encode({'reservation_id': id}));
+    if (r.statusCode != 200) throw Exception(r.body);
+    return Reservation.fromJson(json.decode(r.body));
+  }
 }
