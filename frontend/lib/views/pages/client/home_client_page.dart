@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prbd_2526_c06/core/tools/date_formatters.dart';
+import 'package:prbd_2526_c06/core/widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/core/widgets/status_badge.dart';
 import 'package:prbd_2526_c06/providers/client_reservations_provider.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
 import 'package:prbd_2526_c06/views/pages/client/reservation_details_page.dart';
-
-
-
 
 class HomeClientPage extends ConsumerWidget {
   const HomeClientPage({super.key});
@@ -23,24 +21,17 @@ class HomeClientPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final reservations = ref.watch(clientReservationsProvider);
     final statusFilter = ref.read(clientReservationsProvider.notifier).statusFilter;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mes réservations'),
-        automaticallyImplyLeading: false,
+      appBar: ReserviteAppBar(
+        title: 'Mes réservations',
+        onRefresh: () => ref.read(clientReservationsProvider.notifier).refresh(),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Rafraîchir les données',
-            onPressed: () {
-              ref.read(clientReservationsProvider.notifier).refresh();},
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -51,29 +42,6 @@ class HomeClientPage extends ConsumerWidget {
             },
           ),
         ],
-        elevation: 2,
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: theme.colorScheme.onPrimary,
-        surfaceTintColor: Colors.transparent,
-        flexibleSpace: Align(
-          alignment: Alignment.topCenter,
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 2.0),
-              child: Tooltip(
-                message: 'Date/heure simulée utilisée pour les tests.\nCliquez pour modifier.',
-                child: Text(
-                  'mercredi 04/12/2024 16:00',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey[400],
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
       ),
       body: SafeArea(
         child: Column(
@@ -119,103 +87,104 @@ class HomeClientPage extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Expanded(
+              child: reservations.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(child: Text('Erreur : $e')),
+                data: (list) {
+                  if (list.isEmpty) {
+                    return const Center(
+                      child: Text('Aucune réservation pour ce filtre'),
+                    );
+                  }
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: list.length,
+                    itemBuilder: (context, i) {
+                      final r = list[i];
+                      final name =
+                          r.restaurantName ?? 'Restaurant #${r.restaurantId}';
+                      final city = r.restaurantCity ?? '';
 
-                child: reservations.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Center(child: Text('Erreur : $e')),
-                  data: (list) {
-                    if (list.isEmpty) {
-                      return const Center(
-                        child: Text('Aucune réservation pour ce filtre'),
-                      );
-                    }
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(16.0),
-                      itemCount: list.length,
-                      itemBuilder: (context, i) {
-                        final r = list[i];
-                        final name = r.restaurantName ?? 'Restaurant #${r.restaurantId}';
-                        final city = r.restaurantCity ?? '';
-
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          child: InkWell(
-                            onTap: () => _openDetails(context, r.id),
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Row(
-                                children: [
-                                  Tooltip(
-                                    message: statusLabel(r.status),
-                                    child: statusIcon(r.status),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          name,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: InkWell(
+                          onTap: () => _openDetails(context, r.id),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
+                              children: [
+                                Tooltip(
+                                  message: statusLabel(r.status),
+                                  child: statusIcon(r.status),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        name,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                        if (city.isNotEmpty) ...[
-                                          const SizedBox(height: 4),
-                                          Row(
-                                            children: [
-                                              const Icon(Icons.location_on, size: 14),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                city,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.grey[600],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
+                                      ),
+                                      if (city.isNotEmpty) ...[
                                         const SizedBox(height: 4),
                                         Row(
                                           children: [
-                                            const Icon(Icons.access_time, size: 16),
+                                            const Icon(Icons.location_on, size: 14),
                                             const SizedBox(width: 4),
                                             Text(
-                                              '${formatReservationDateLabel(r.datetime)} '
-                                                  '${formatReservationTimeLabel(r.datetime)}',
+                                              city,
                                               style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.grey[600],
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            const Icon(Icons.people, size: 16),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              '${r.numberOfGuests} convives',
-                                              style: TextStyle(
-                                                fontSize: 14,
+                                                fontSize: 12,
                                                 color: Colors.grey[600],
                                               ),
                                             ),
                                           ],
                                         ),
                                       ],
-                                    ),
+                                      const SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.access_time, size: 16),
+                                          const SizedBox(width: 4),
+                                          Flexible(
+                                            child: Text(
+                                              '${formatReservationDateLabel(r.datetime)} '
+                                              '${formatReservationTimeLabel(r.datetime)}',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Colors.grey[600],
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          const Icon(Icons.people, size: 16),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '${r.numberOfGuests} convives',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                  const Icon(Icons.chevron_right),
-                                ],
-                              ),
+                                ),
+                                const Icon(Icons.chevron_right),
+                              ],
                             ),
                           ),
-                        );
-                      },
-                    );
-                  },
-                ),
-
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),

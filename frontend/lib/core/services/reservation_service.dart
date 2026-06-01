@@ -35,7 +35,7 @@ class ReservationService {
       body: json.encode({'reservation_id': reservationId}),
     );
     if (response.statusCode != 200) {
-      throw Exception(response.body);
+      throw Exception(ApiClient.errorMessage(response));
     }
     return Reservation.fromJson(
       json.decode(response.body) as Map<String, dynamic>,
