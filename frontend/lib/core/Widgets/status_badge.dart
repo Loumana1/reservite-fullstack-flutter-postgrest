@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:prbd_2526_c06/core/tools/date_formatters.dart';
 
 export 'package:prbd_2526_c06/core/tools/date_formatters.dart' show statusLabel;
 

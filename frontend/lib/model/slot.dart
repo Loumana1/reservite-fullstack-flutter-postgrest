@@ -53,9 +53,9 @@ class SlotsResponse {
     final r = await ApiClient.post('get_available_slots', body: json.encode({
       'restaurant_id': restaurantId,
       'target_date': iso,
-      if (excludeReservationId != null) 'exclude_reservation_id': excludeReservationId,
+      'exclude_reservation_id': ?excludeReservationId,
     }));
-    if (r.statusCode != 200) throw Exception('Failed to load slots');
+    if (r.statusCode != 200) throw Exception('Failed to load slots: ${r.statusCode} ${r.body}');
     return SlotsResponse.fromJson(json.decode(r.body));
   }
 
@@ -69,7 +69,7 @@ class SlotsResponse {
       'restaurant_id': restaurantId,
       'target_datetime': datetime.toIso8601String(),
       'guests': guests,
-      if (excludeReservationId != null) 'exclude_reservation_id': excludeReservationId,
+      'exclude_reservation_id': ?excludeReservationId,
     }));
     if (r.statusCode != 200) throw Exception('Failed to check capacity');
     return json.decode(r.body) == true;

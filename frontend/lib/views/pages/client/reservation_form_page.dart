@@ -5,6 +5,7 @@ import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/model/slot.dart';
 import 'package:prbd_2526_c06/providers/reservation_form_provider.dart';
+
 import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 
 class ReservationFormPage extends ConsumerStatefulWidget {
@@ -19,6 +20,21 @@ class ReservationFormPage extends ConsumerStatefulWidget {
 
 class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
   bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(reservationFormProvider.notifier).init(widget.restaurant.id);
+    });
+  }
+
+  @override
+  void dispose() {
+    final notifier = ref.read(reservationFormProvider.notifier);
+    Future.microtask(() => notifier.reset());
+    super.dispose();
+  }
 
   Future<void> _pickDate(
     ReservationFormNotifier notifier,
@@ -65,12 +81,19 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final restaurant = widget.restaurant;
-    final state = ref.watch(reservationFormProvider(restaurant.id));
-    final notifier = ref.read(reservationFormProvider(restaurant.id).notifier);
+    final state = ref.watch(reservationFormProvider);
+    final notifier = ref.read(reservationFormProvider.notifier);
     final simTime =
         ref.watch(simulatedTimeProvider).value ?? DateTime.now();
 
-    final selectedDate = state.selectedDate;
+    // Tant que le provider n'est pas init, on attend.
+    if (state.selectedDate == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    final selectedDate = state.selectedDate!;
+
 
     final canSubmit = state.selectedSlot != null &&
         state.capacityOk &&
@@ -87,7 +110,7 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
         ),
         onRefresh: () async {
           await ref.read(simulatedTimeProvider.notifier).refresh();
-          await notifier.loadSlots(state.selectedDate);
+          await notifier.loadSlots(selectedDate);
         },
       ),
       body: SafeArea(
@@ -168,7 +191,7 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
                   ),
                 ],
               ),
-              const Divider(),
+
               if (state.loadingSlots)
                 const Padding(
                   padding: EdgeInsets.all(16),
@@ -201,19 +224,29 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
               if (!state.loadingSlots &&
                   state.slotsResponse?.restaurantClosed != true &&
                   state.slotsResponse?.userFullyBooked != true)
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                GridView.count(
+                  crossAxisCount: 4,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  childAspectRatio: 2.2,
                   children: (state.slotsResponse?.slots ?? const <Slot>[])
-                      .map((slot) => _SlotChip(
-                            slot: slot,
-                            selected: state.selectedSlot?.datetime ==
-                                slot.datetime,
-                            onTap: slot.available
-                                ? () => notifier.selectSlot(slot)
-                                : null,
-                          ))
-                      .toList(),
+                      .map((slot) {
+                    final isSelected =
+                        state.selectedSlot?.datetime == slot.datetime;
+                    return ChoiceChip(
+                      label: Text(formatSlotTime(slot.datetime)),
+                      selected: isSelected,
+                      onSelected: slot.available
+                          ? (_) => notifier.selectSlot(slot)
+                          : null,
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    );
+                  }).toList(),
                 ),
               const SizedBox(height: 24),
               ListTile(
@@ -287,61 +320,6 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SlotChip extends StatelessWidget {
-  const _SlotChip({
-    required this.slot,
-    required this.selected,
-    this.onTap,
-  });
-
-  final Slot slot;
-  final bool selected;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final enabled = onTap != null;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: 80,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: selected
-                ? theme.colorScheme.primary
-                : theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: selected
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.outline,
-            ),
-          ),
-          child: Center(
-            child: Text(
-              formatSlotTime(slot.datetime),
-              style: TextStyle(
-                color: selected
-                    ? theme.colorScheme.onPrimary
-                    : enabled
-                        ? theme.colorScheme.onSurface
-                        : theme.colorScheme.onSurface.withValues(alpha: 0.4),
-                fontSize: 14,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
           ),
         ),
       ),

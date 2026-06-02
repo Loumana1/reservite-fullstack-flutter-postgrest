@@ -61,8 +61,8 @@ class Reservation {
 
   static Future<List<Reservation>> getAll({int? restaurantId, String? statusFilter}) async {
     final r = await ApiClient.post('get_reservations', body: json.encode({
-      if (restaurantId != null) 'restaurant_id': restaurantId,
-      if (statusFilter != null) 'status_filter': statusFilter,
+      'restaurant_id': ?restaurantId,
+      'status_filter': ?statusFilter,
     }));
     if (r.statusCode != 200) throw Exception('Failed to load reservations');
     final List<dynamic> body = json.decode(r.body);
@@ -82,7 +82,7 @@ class Reservation {
       'number_of_guests': numberOfGuests,
       if (specialRequests != null && specialRequests.isNotEmpty)
         'special_requests': specialRequests,
-      if (reservationId != null) 'reservation_id': reservationId,
+      'reservation_id': ?reservationId,
     }));
     if (r.statusCode != 200) throw Exception(r.body);
     return Reservation.fromJson(json.decode(r.body));

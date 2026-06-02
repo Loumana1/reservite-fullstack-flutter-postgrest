@@ -35,7 +35,7 @@ class Security {
       'check_email_available',
       body: json.encode({
         'email': email.trim(),
-        if (userId != null) 'user_id': userId,
+        'user_id': ?userId,
       }),
       anonymous: true,
     );
@@ -53,7 +53,7 @@ class Security {
       'check_full_name_available',
       body: json.encode({
         'full_name': fullName.trim(),
-        if (userId != null) 'user_id': userId,
+        'user_id': ?userId,
       }),
       anonymous: true,
     );

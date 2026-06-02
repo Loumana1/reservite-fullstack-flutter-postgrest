@@ -51,7 +51,7 @@ class Restaurant {
 
   static Future<List<Restaurant>> getAll({String? searchFilter}) async {
     final r = await ApiClient.post('get_restaurants', body: json.encode({
-      'search_filter': searchFilter,
+      'search_filter': ?searchFilter,
       'limit_count': maxSearchResults,
     }));
     if (r.statusCode != 200) throw Exception('Failed to load restaurants');
