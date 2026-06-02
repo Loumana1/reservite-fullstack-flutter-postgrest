@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:prbd_2526_c06/core/widgets/reservite_app_bar.dart';
+import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/providers/restaurants_provider.dart';
 import 'package:prbd_2526_c06/views/pages/client/reservation_form_page.dart';

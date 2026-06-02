@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prbd_2526_c06/core/tools/date_formatters.dart';
-import 'package:prbd_2526_c06/core/widgets/reservite_app_bar.dart';
+import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/model/slot.dart';
 import 'package:prbd_2526_c06/providers/reservation_form_provider.dart';

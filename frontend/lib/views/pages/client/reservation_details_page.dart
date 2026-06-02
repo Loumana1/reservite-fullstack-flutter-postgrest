@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:prbd_2526_c06/core/widgets/confirm_dialog.dart';
 import 'package:prbd_2526_c06/core/widgets/reservation_detail_card.dart';
-import 'package:prbd_2526_c06/core/widgets/reservite_app_bar.dart';
+import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/providers/reservation_detail_provider.dart';
 
 class ReservationDetailsPage extends ConsumerWidget {
