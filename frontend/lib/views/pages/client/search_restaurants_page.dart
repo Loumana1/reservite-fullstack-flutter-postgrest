@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/providers/restaurants_provider.dart';
-import 'package:prbd_2526_c06/views/pages/client/reservation_form_page.dart';
+import 'package:prbd_2526_c06/views/pages/client/restaurant_details_page.dart';
 
 class SearchRestaurantsPage extends ConsumerStatefulWidget {
   const SearchRestaurantsPage({super.key});
@@ -146,7 +146,7 @@ class _SearchRestaurantsPageState extends ConsumerState<SearchRestaurantsPage> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) =>
-                                        ReservationFormPage(restaurant: r),
+                                        RestaurantDetailsPage(restaurant: r),
                                   ),
                                 ),
                               ),
