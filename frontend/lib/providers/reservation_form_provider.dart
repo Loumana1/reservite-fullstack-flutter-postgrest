@@ -7,8 +7,8 @@ import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 
 class ReservationFormState {
   const ReservationFormState({
-    this.restaurantId,
-    this.selectedDate,
+    required this.restaurantId,
+    required this.selectedDate,
     this.selectedSlot,
     this.guests = 2,
     this.specialRequests = '',
@@ -18,8 +18,8 @@ class ReservationFormState {
     this.checkingCapacity = false,
   });
 
-  final int? restaurantId;
-  final DateTime? selectedDate;
+  final int restaurantId;
+  final DateTime selectedDate;
   final Slot? selectedSlot;
   final int guests;
   final String specialRequests;
@@ -29,7 +29,6 @@ class ReservationFormState {
   final bool checkingCapacity;
 
   ReservationFormState copyWith({
-    int? restaurantId,
     DateTime? selectedDate,
     Slot? selectedSlot,
     int? guests,
@@ -41,7 +40,7 @@ class ReservationFormState {
     bool clearSelectedSlot = false,
   }) =>
       ReservationFormState(
-        restaurantId: restaurantId ?? this.restaurantId,
+        restaurantId: restaurantId,
         selectedDate: selectedDate ?? this.selectedDate,
         selectedSlot:
             clearSelectedSlot ? null : (selectedSlot ?? this.selectedSlot),
@@ -54,45 +53,34 @@ class ReservationFormState {
       );
 }
 
-
-final reservationFormProvider =
-    NotifierProvider<ReservationFormNotifier, ReservationFormState>(
+final reservationFormProvider = NotifierProvider.family<
+    ReservationFormNotifier, ReservationFormState, int>(
   ReservationFormNotifier.new,
 );
 
-class ReservationFormNotifier
-    extends Notifier<ReservationFormState> {
+class ReservationFormNotifier extends Notifier<ReservationFormState> {
   ReservationFormNotifier(this.restaurantId);
 
   final int restaurantId;
   Timer? _guestsDebounce;
-  bool _initialized = false;
 
   @override
   ReservationFormState build() {
-    return const ReservationFormState();
-  }
-
-    Future.microtask(() => loadSlots(initialDate));
-
-  void init(int restaurantId) {
-    if (_initialized && state.restaurantId == restaurantId) return;
-    _initialized = true;
-    final reference = ref.read(simulatedTimeProvider).value ?? DateTime.now();
+    final simAsync = ref.watch(simulatedTimeProvider);
+    final reference = simAsync.value ?? DateTime.now();
     final initialDate =
         DateTime(reference.year, reference.month, reference.day);
 
-    state = ReservationFormState(
+    ref.onDispose(() => _guestsDebounce?.cancel());
+    Future.microtask(() => loadSlots(initialDate));
+
+    return ReservationFormState(
       restaurantId: restaurantId,
       selectedDate: initialDate,
     );
-    Future.microtask(() => loadSlots(initialDate));
   }
 
   Future<void> loadSlots(DateTime date) async {
-    final restaurantId = state.restaurantId;
-    if (restaurantId == null) return;
-
     state = state.copyWith(
       selectedDate: date,
       loadingSlots: true,
@@ -115,7 +103,6 @@ class ReservationFormNotifier
         await _refreshCapacity();
       }
     } catch (e) {
-      print(' loadSlots error: $e');
       state = state.copyWith(loadingSlots: false);
     }
   }
@@ -138,8 +125,7 @@ class ReservationFormNotifier
 
   Future<void> _refreshCapacity() async {
     final slot = state.selectedSlot;
-    final restaurantId = state.restaurantId;
-    if (slot == null || restaurantId == null) return;
+    if (slot == null) return;
     state = state.copyWith(checkingCapacity: true);
     try {
       final ok = await SlotsResponse.checkCapacity(
@@ -153,17 +139,9 @@ class ReservationFormNotifier
     }
   }
 
-
-  void reset() {
-    _initialized = false;
-    _guestsDebounce?.cancel();
-    state = const ReservationFormState();
-  }
-
   Future<Reservation?> submit() async {
     final slot = state.selectedSlot;
-    final restaurantId = state.restaurantId;
-    if (slot == null || restaurantId == null) return null;
+    if (slot == null) return null;
     try {
       final reservation = await Reservation.save(
         restaurantId: restaurantId,

@@ -21,21 +21,6 @@ class ReservationFormPage extends ConsumerStatefulWidget {
 class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
   bool _submitting = false;
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(reservationFormProvider.notifier).init(widget.restaurant.id);
-    });
-  }
-
-  @override
-  void dispose() {
-    final notifier = ref.read(reservationFormProvider.notifier);
-    Future.microtask(() => notifier.reset());
-    super.dispose();
-  }
-
   Future<void> _pickDate(
     ReservationFormNotifier notifier,
     DateTime selectedDate,
@@ -81,19 +66,12 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final restaurant = widget.restaurant;
-    final state = ref.watch(reservationFormProvider);
-    final notifier = ref.read(reservationFormProvider.notifier);
+    final state = ref.watch(reservationFormProvider(restaurant.id));
+    final notifier =
+        ref.read(reservationFormProvider(restaurant.id).notifier);
     final simTime =
         ref.watch(simulatedTimeProvider).value ?? DateTime.now();
-
-    // Tant que le provider n'est pas init, on attend.
-    if (state.selectedDate == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-    final selectedDate = state.selectedDate!;
-
+    final selectedDate = state.selectedDate;
 
     final canSubmit = state.selectedSlot != null &&
         state.capacityOk &&
@@ -110,7 +88,7 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
         ),
         onRefresh: () async {
           await ref.read(simulatedTimeProvider.notifier).refresh();
-          await notifier.loadSlots(selectedDate);
+          await notifier.loadSlots(state.selectedDate);
         },
       ),
       body: SafeArea(
