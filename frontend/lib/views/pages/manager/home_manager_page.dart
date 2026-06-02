@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
 import 'package:prbd_2526_c06/views/pages/manager/restaurant_dashboard_page.dart';
@@ -46,21 +47,14 @@ class HomeManagerPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final simulatedTime = DateTime(2024, 12, 4, 16, 0);
     final restaurantsAsync = ref.watch(managerRestaurantsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mes restaurants'),
-        automaticallyImplyLeading: false,
+      appBar: ReserviteAppBar(
+        title: 'Mes restaurants',
+        onRefresh: () =>
+            ref.read(managerRestaurantsProvider.notifier).refresh(),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Rafraîchir les données',
-            onPressed: () =>
-                ref.read(managerRestaurantsProvider.notifier).refresh(),
-          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Déconnexion',
@@ -70,31 +64,6 @@ class HomeManagerPage extends ConsumerWidget {
             },
           ),
         ],
-        elevation: 2,
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: theme.colorScheme.onPrimary,
-        surfaceTintColor: Colors.transparent,
-        flexibleSpace: Align(
-          alignment: Alignment.topCenter,
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 2.0),
-              child: Tooltip(
-                message:
-                    'Date/heure simulée utilisée pour les tests.\nCliquez pour modifier.',
-                child: Text(
-                  DateFormat('EEEE dd/MM/yyyy HH:mm', 'fr_FR')
-                      .format(simulatedTime),
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey[400],
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
       ),
       body: SafeArea(
         child: restaurantsAsync.when(
