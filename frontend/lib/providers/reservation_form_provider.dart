@@ -58,15 +58,19 @@ final reservationFormProvider = NotifierProvider.family<
 );
 
 class ReservationFormNotifier
-    extends FamilyNotifier<ReservationFormState, int> {
+    extends Notifier<ReservationFormState> {
+  ReservationFormNotifier(this.restaurantId);
+
+  final int restaurantId;
   Timer? _guestsDebounce;
 
   @override
-  ReservationFormState build(int restaurantId) {
+  ReservationFormState build() {
     final simAsync = ref.watch(simulatedTimeProvider);
     final reference = simAsync.value ?? DateTime.now();
     final initialDate = DateTime(reference.year, reference.month, reference.day);
 
+    ref.onDispose(() => _guestsDebounce?.cancel());
     Future.microtask(() => loadSlots(initialDate));
 
     return ReservationFormState(

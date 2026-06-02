@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:prbd_2526_c06/model/reservation.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
 import 'package:prbd_2526_c06/views/pages/manager/restaurant_dashboard_page.dart';
+
+final managerPendingCountProvider = FutureProvider.family<int, int>((
+  ref,
+  restaurantId,
+) async {
+  final list = await Reservation.getAll(
+    restaurantId: restaurantId,
+    statusFilter: 'pending',
+  );
+  return list.length;
+});
 
 class HomeManagerPage extends ConsumerWidget {
   const HomeManagerPage({super.key});
@@ -109,20 +121,7 @@ class HomeManagerPage extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    const Row(
-                      children: [
-                        Icon(Icons.pending, size: 14, color: Colors.orange),
-                        SizedBox(width: 4),
-                        Text(
-                          '2 demandes en attente',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.orange,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
+                    _PendingCountText(restaurantId: 1),
                   ],
                 ),
                 trailing: const Icon(Icons.chevron_right),
@@ -168,20 +167,7 @@ class HomeManagerPage extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    const Row(
-                      children: [
-                        Icon(Icons.pending, size: 14, color: Colors.orange),
-                        SizedBox(width: 4),
-                        Text(
-                          '1 demande en attente',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.orange,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
+                    _PendingCountText(restaurantId: 2),
                   ],
                 ),
                 trailing: const Icon(Icons.chevron_right),
@@ -224,6 +210,35 @@ class HomeManagerPage extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _PendingCountText extends ConsumerWidget {
+  const _PendingCountText({required this.restaurantId});
+
+  final int restaurantId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final countAsync = ref.watch(managerPendingCountProvider(restaurantId));
+    return Row(
+      children: [
+        const Icon(Icons.pending, size: 14, color: Colors.orange),
+        const SizedBox(width: 4),
+        Text(
+          countAsync.when(
+            data: (count) => '$count demande${count > 1 ? 's' : ''} en attente',
+            loading: () => '… demandes en attente',
+            error: (_, _) => 'Demandes indisponibles',
+          ),
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.orange,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }
