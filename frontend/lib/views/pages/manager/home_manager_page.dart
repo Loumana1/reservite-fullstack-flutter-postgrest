@@ -19,11 +19,15 @@ final managerPendingCountProvider = FutureProvider.family<int, int>((
 class HomeManagerPage extends ConsumerWidget {
   const HomeManagerPage({super.key});
 
-  void _openDashboard(BuildContext context, int restaurantId) {
+  void _openDashboard(
+    BuildContext context,
+    int restaurantId,
+    String restaurantName,
+  ) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => RestaurantDashboardPage(restaurantId: restaurantId),
+        builder: (_) => RestaurantDashboardPage(restaurantId, restaurantName),
       ),
     );
   }
@@ -125,7 +129,7 @@ class HomeManagerPage extends ConsumerWidget {
                   ],
                 ),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => _openDashboard(context, 1),
+                onTap: () => _openDashboard(context, 1, 'Le Gourmet'),
               ),
             ),
             Card(
@@ -171,7 +175,7 @@ class HomeManagerPage extends ConsumerWidget {
                   ],
                 ),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => _openDashboard(context, 2),
+                onTap: () => _openDashboard(context, 2, 'La Trattoria'),
               ),
             ),
             Card(
@@ -204,7 +208,7 @@ class HomeManagerPage extends ConsumerWidget {
                   ],
                 ),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => _openDashboard(context, 8),
+                onTap: () => _openDashboard(context, 8, 'Sushi House'),
               ),
             ),
           ],

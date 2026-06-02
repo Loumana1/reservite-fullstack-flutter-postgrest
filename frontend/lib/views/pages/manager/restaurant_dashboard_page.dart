@@ -8,9 +8,10 @@ import 'package:prbd_2526_c06/providers/manager_reservations_provider.dart';
 import 'package:prbd_2526_c06/views/pages/client/reservation_details_page.dart';
 
 class RestaurantDashboardPage extends ConsumerWidget {
-  const RestaurantDashboardPage({super.key, required this.restaurantId});
+  const RestaurantDashboardPage(this.restaurantId, this.restaurantName, {super.key});
 
   final int restaurantId;
+  final String restaurantName;
 
   void _openDetails(BuildContext context, int reservationId) {
     Navigator.push(
@@ -29,7 +30,7 @@ class RestaurantDashboardPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: ReserviteAppBar(
-        title: 'Restaurant #$restaurantId',
+        title: restaurantName,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
