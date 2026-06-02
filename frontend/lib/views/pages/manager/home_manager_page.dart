@@ -1,20 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:prbd_2526_c06/model/reservation.dart';
+import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
 import 'package:prbd_2526_c06/views/pages/manager/restaurant_dashboard_page.dart';
 
-final managerPendingCountProvider = FutureProvider.family<int, int>((
-  ref,
-  restaurantId,
-) async {
-  final list = await Reservation.getAll(
-    restaurantId: restaurantId,
-    statusFilter: 'pending',
-  );
-  return list.length;
-});
+final managerRestaurantsProvider =
+    AsyncNotifierProvider<ManagerRestaurantsNotifier, List<Restaurant>>(
+  ManagerRestaurantsNotifier.new,
+);
+
+class ManagerRestaurantsNotifier extends AsyncNotifier<List<Restaurant>> {
+  static const _loadTimeout = Duration(seconds: 12);
+
+  @override
+  Future<List<Restaurant>> build() {
+    return _fetch();
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(_fetch);
+  }
+
+  Future<List<Restaurant>> _fetch() {
+    return Restaurant.getAll().timeout(_loadTimeout);
+  }
+}
 
 class HomeManagerPage extends ConsumerWidget {
   const HomeManagerPage({super.key});
@@ -36,6 +48,7 @@ class HomeManagerPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final simulatedTime = DateTime(2024, 12, 4, 16, 0);
+    final restaurantsAsync = ref.watch(managerRestaurantsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -45,11 +58,12 @@ class HomeManagerPage extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Rafraîchir les données',
-            onPressed: () {},
+            onPressed: () =>
+                ref.read(managerRestaurantsProvider.notifier).refresh(),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Déconnexion (Benoît P.)',
+            tooltip: 'Déconnexion',
             onPressed: () {
               ref.read(securityProvider.notifier).logOut();
               Navigator.pushReplacementNamed(context, '/login');
@@ -83,166 +97,140 @@ class HomeManagerPage extends ConsumerWidget {
         ),
       ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: const Icon(Icons.restaurant, size: 40),
-                title: const Text('Le Gourmet'),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        const Text('Bruxelles'),
-                        const SizedBox(width: 12),
-                        const Icon(Icons.star, size: 14, color: Colors.amber),
-                        const SizedBox(width: 2),
-                        Text(
-                          '4.5',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          '€€€',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.access_time, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Dernière réservation: mer. 04/12/2024',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    _PendingCountText(restaurantId: 1),
-                  ],
+        child: restaurantsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    'Erreur de chargement : $e',
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _openDashboard(context, 1, 'Le Gourmet'),
-              ),
-            ),
-            Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: const Icon(Icons.restaurant, size: 40),
-                title: const Text('La Trattoria'),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        const Text('Bruxelles'),
-                        const SizedBox(width: 12),
-                        const Icon(Icons.star, size: 14, color: Colors.amber),
-                        const SizedBox(width: 2),
-                        Text(
-                          '4.2',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          '€€',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.access_time, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Dernière réservation: jeu. 05/12/2024',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    _PendingCountText(restaurantId: 2),
-                  ],
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: () =>
+                      ref.read(managerRestaurantsProvider.notifier).refresh(),
+                  child: const Text('Réessayer'),
                 ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _openDashboard(context, 2, 'La Trattoria'),
-              ),
+              ],
             ),
-            Card(
-              margin: EdgeInsets.zero,
-              child: ListTile(
-                leading: const Icon(Icons.restaurant, size: 40),
-                title: const Text('Sushi House'),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+          ),
+          data: (restaurants) {
+            if (restaurants.isEmpty) {
+              return const Center(child: Text('Aucun restaurant géré'));
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: restaurants.length,
+              itemBuilder: (context, i) {
+                final r = restaurants[i];
+                final pending = r.pendingRequests ?? 0;
+                final lastDate = r.lastReservationDate != null
+                    ? DateFormat('EEE dd/MM/yyyy', 'fr_FR')
+                        .format(r.lastReservationDate!)
+                    : null;
+
+                return Card(
+                  margin: EdgeInsets.only(
+                    bottom: i == restaurants.length - 1 ? 0 : 8,
+                  ),
+                  child: ListTile(
+                    leading: const Icon(Icons.restaurant, size: 40),
+                    title: Text(r.name),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.location_on, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        const Text('Bruxelles'),
-                        const SizedBox(width: 12),
-                        const Icon(Icons.star, size: 14, color: Colors.amber),
-                        const SizedBox(width: 2),
-                        Text(
-                          '4.7',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.location_on,
+                              size: 14,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(r.city),
+                            if (r.rating != null) ...[
+                              const SizedBox(width: 12),
+                              const Icon(
+                                Icons.star,
+                                size: 14,
+                                color: Colors.amber,
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                r.rating!.toStringAsFixed(1),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                            if (r.priceRange != null) ...[
+                              const SizedBox(width: 12),
+                              Text(
+                                '€' * r.priceRange!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                        const SizedBox(width: 12),
-                        Text(
-                          '€€€',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        if (lastDate != null) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.access_time,
+                                size: 14,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Dernière réservation: $lastDate',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.pending,
+                              size: 14,
+                              color: Colors.orange,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$pending demande${pending > 1 ? 's' : ''} en attente',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.orange,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => _openDashboard(context, 8, 'Sushi House'),
-              ),
-            ),
-          ],
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _openDashboard(context, r.id, r.name),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
-    );
-  }
-}
-
-class _PendingCountText extends ConsumerWidget {
-  const _PendingCountText({required this.restaurantId});
-
-  final int restaurantId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final countAsync = ref.watch(managerPendingCountProvider(restaurantId));
-    return Row(
-      children: [
-        const Icon(Icons.pending, size: 14, color: Colors.orange),
-        const SizedBox(width: 4),
-        Text(
-          countAsync.when(
-            data: (count) => '$count demande${count > 1 ? 's' : ''} en attente',
-            loading: () => '… demandes en attente',
-            error: (_, _) => 'Demandes indisponibles',
-          ),
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.orange,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
     );
   }
 }
