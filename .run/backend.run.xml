@@ -3,7 +3,7 @@
     <script-file value="$PROJECT_DIR$/backend/scripts/01_init.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/02_security.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/03_tables_and_data.sql" />
-    <script-file value="$PROJECT_DIR$/backend/scripts/04.utils.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04.00_utils.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.00_checks.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.01_br_reservation_client.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/04.02_br_reservation_capicity.sql" />

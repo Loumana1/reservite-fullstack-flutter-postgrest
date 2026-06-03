@@ -10,7 +10,7 @@ returns trigger as $$
             and new.start_time < end_time
             and new.end_time > start_time
         ) then
-            raise exception 'Le service chevauche un autre service existant pour ce restaurant le meme jour !';
+            raise exception 'BR-7 : Le service chevauche un autre service existant pour ce restaurant le meme jour !';
 
         end if;
         return new;

@@ -23,7 +23,7 @@ returns trigger as $$
         )into conflict_exists;
 
         if conflict_exists then
-        raise exception 'Client a deja une reservation active pour ce service ce jour-la ';
+        raise exception 'BR-12 : Client a deja une reservation active pour ce service ce jour-la ';
         end if;
 
         return new;
