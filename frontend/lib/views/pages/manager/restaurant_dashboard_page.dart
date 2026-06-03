@@ -5,7 +5,7 @@ import 'package:prbd_2526_c06/core/tools/date_formatters.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/core/widgets/status_badge.dart';
 import 'package:prbd_2526_c06/providers/manager_reservations_provider.dart';
-import 'package:prbd_2526_c06/views/pages/client/reservation_details_page.dart';
+import 'package:prbd_2526_c06/views/pages/manager/manager_reservation_details_page.dart';
 
 class RestaurantDashboardPage extends ConsumerWidget {
   const RestaurantDashboardPage(this.restaurantId, this.restaurantName, {super.key});
@@ -17,7 +17,10 @@ class RestaurantDashboardPage extends ConsumerWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ReservationDetailsPage(reservationId: reservationId),
+        builder: (_) => ManagerReservationDetailsPage(
+          reservationId: reservationId,
+          restaurantId: restaurantId,
+        ),
       ),
     );
   }
