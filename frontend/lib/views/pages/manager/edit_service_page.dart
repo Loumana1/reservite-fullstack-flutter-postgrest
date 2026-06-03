@@ -64,6 +64,31 @@ class _EditServicePageState extends ConsumerState<EditServicePage> {
     }
   }
 
+  Future<void> _refreshFromServer() async {
+    ref.invalidate(restaurantServicesProvider(widget.restaurantId));
+    final serviceId = widget.service?.id;
+    if (serviceId == null) return;
+    try {
+      final services = await ref.read(
+        restaurantServicesProvider(widget.restaurantId).future,
+      );
+      final updated = services.where((s) => s.id == serviceId).firstOrNull;
+      if (updated != null && mounted) {
+        setState(() {
+          _dayOfWeek = updated.dayOfWeek;
+          _startController.text = updated.startTime;
+          _endController.text = updated.endTime;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$e')),
+        );
+      }
+    }
+  }
+
   Future<void> _delete() async {
     final service = widget.service;
     if (service == null) return;
@@ -103,6 +128,7 @@ class _EditServicePageState extends ConsumerState<EditServicePage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: _submitting ? null : () => Navigator.pop(context),
         ),
+        onRefresh: isEdit ? _refreshFromServer : null,
       ),
       body: SafeArea(
         child: Padding(

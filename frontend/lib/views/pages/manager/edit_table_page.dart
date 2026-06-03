@@ -42,6 +42,30 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
     super.dispose();
   }
 
+  Future<void> _refreshFromServer() async {
+    ref.invalidate(restaurantTablesProvider(widget.restaurantId));
+    final tableId = widget.table?.id;
+    if (tableId == null) return;
+    try {
+      final tables = await ref.read(
+        restaurantTablesProvider(widget.restaurantId).future,
+      );
+      final updated = tables.where((t) => t.id == tableId).firstOrNull;
+      if (updated != null && mounted) {
+        setState(() {
+          _numberController.text = '${updated.tableNumble}';
+          _capacityController.text = '${updated.capacity}';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$e')),
+        );
+      }
+    }
+  }
+
   Future<void> _save() async {
     final tableNumber = int.tryParse(_numberController.text.trim());
     final capacity = int.tryParse(_capacityController.text.trim());
@@ -84,6 +108,7 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: _submitting ? null : () => Navigator.pop(context),
         ),
+        onRefresh: isEdit ? _refreshFromServer : null,
       ),
       body: SafeArea(
         child: Padding(

@@ -81,7 +81,7 @@ class ReservationFormNotifier extends Notifier<ReservationFormState> {
         DateTime(reference.year, reference.month, reference.day);
 
     ref.onDispose(() => _guestsDebounce?.cancel());
-    Future.microtask(() => loadSlots(initialDate));
+    Future.microtask(_initialLoad);
 
     return ReservationFormState(
       restaurantId: restaurantId,
@@ -89,6 +89,60 @@ class ReservationFormNotifier extends Notifier<ReservationFormState> {
       selectedDate: initialDate,
     );
   }
+
+  Future<void> _initialLoad() async {
+    if (reservationId != null) {
+      await _loadFromReservation(reservationId!);
+    } else {
+      final reference =
+          ref.read(simulatedTimeProvider).value ?? DateTime.now();
+      await loadSlots(DateTime(
+        reference.year,
+        reference.month,
+        reference.day,
+      ));
+    }
+  }
+
+  /// Rafraîchit créneaux, capacité et (en édition) les données serveur.
+  Future<void> reload() async {
+    await ref.read(simulatedTimeProvider.notifier).refresh();
+    if (reservationId != null) {
+      await _loadFromReservation(reservationId!);
+    } else {
+      await loadSlots(state.selectedDate);
+    }
+  }
+
+  Future<void> _loadFromReservation(int id) async {
+    try {
+      final r = await Reservation.getById(id);
+      final date = DateTime(r.datetime.year, r.datetime.month, r.datetime.day);
+      state = state.copyWith(
+        selectedDate: date,
+        guests: r.numberOfGuests,
+        specialRequests: r.specialRequests ?? '',
+      );
+      await loadSlots(date);
+      final slots = state.slotsResponse?.slots ?? [];
+      for (final s in slots) {
+        if (_sameMinute(s.datetime, r.datetime)) {
+          state = state.copyWith(selectedSlot: s);
+          await _refreshCapacity();
+          break;
+        }
+      }
+    } catch (_) {
+      await loadSlots(state.selectedDate);
+    }
+  }
+
+  static bool _sameMinute(DateTime a, DateTime b) =>
+      a.year == b.year &&
+      a.month == b.month &&
+      a.day == b.day &&
+      a.hour == b.hour &&
+      a.minute == b.minute;
 
   Future<void> loadSlots(DateTime date) async {
     state = state.copyWith(
