@@ -9,7 +9,7 @@ import 'package:prbd_2526_c06/model/table.dart' as model;
 import 'package:prbd_2526_c06/providers/manager_reservations_provider.dart';
 import 'package:prbd_2526_c06/providers/restaurant_services_provider.dart';
 import 'package:prbd_2526_c06/providers/restaurant_tables_provider.dart';
-import 'package:prbd_2526_c06/views/pages/client/reservation_details_page.dart';
+import 'package:prbd_2526_c06/views/pages/manager/manager_reservation_details_page.dart';
 import 'package:prbd_2526_c06/views/pages/manager/edit_service_page.dart';
 import 'package:prbd_2526_c06/views/pages/manager/edit_table_page.dart';
 
@@ -36,9 +36,13 @@ class _RestaurantManagementReservationsMockupScreenState
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ReservationDetailsPage(reservationId: reservationId),
+        builder: (_) => ManagerReservationDetailsPage(
+          reservationId: reservationId,
+          restaurantId: widget.restaurantId,
+          returnTab: _currentIndex,
+        ),
       ),
-    );
+    ).then((_) => refreshManagerReservations(ref, widget.restaurantId));
   }
 
   void _openEditService(BuildContext context, Service? service) {
