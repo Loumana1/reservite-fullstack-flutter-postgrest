@@ -10,7 +10,7 @@ returns trigger as $$
         if not is_time_aligned_on_slot(new.start_time, slot)
             or not is_time_aligned_on_slot(new.end_time, slot )
             then
-                raise exception 'Horaire pas alignes sur % minutes !' , slot;
+                raise exception 'BR-8 : Horaire pas alignes sur % minutes !' , slot;
         end if;
 
         return new ;

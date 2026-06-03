@@ -13,7 +13,7 @@ create or replace function trg_check_reservation_slot_ok()
          where id = NEW.restaurant;
 
         if not is_aligned_on_slot(NEW.datetime, res_slot_duration) THEN
-                RAISE EXCEPTION 'L''heure de la réservation n''est pas alignée sur la durée des créneaux du restaurant (%).', res_slot_duration;
+                RAISE EXCEPTION '(BR-5 : L''heure de la réservation n''est pas alignée sur la durée des créneaux du restaurant (%).', res_slot_duration;
         end if;
 
         return NEW;

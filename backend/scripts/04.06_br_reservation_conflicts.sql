@@ -56,7 +56,7 @@ create or replace function trg_check_table_conflict()
     END IF;
 
     IF conflict_count > 0 THEN
-        RAISE EXCEPTION 'La table est déjà réservée  à cette date.';
+        RAISE EXCEPTION 'BR-6 : La table est déjà réservée  à cette date.';
     END IF;
 
     RETURN NULL;

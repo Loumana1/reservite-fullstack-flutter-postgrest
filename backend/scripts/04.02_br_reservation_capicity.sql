@@ -34,7 +34,7 @@ returns trigger as $$
                 where rt.reservation =res_id;
 
                 if total_capacity < res_guests then
-                    raise exception 'Capacite insuffusante : % places pour % convives.', total_capacity , res_guests;
+                    raise exception '(BR-2 : Capacite insuffusante : % places pour % convives.', total_capacity , res_guests;
                 end if;
             end if;
         return  null ;
