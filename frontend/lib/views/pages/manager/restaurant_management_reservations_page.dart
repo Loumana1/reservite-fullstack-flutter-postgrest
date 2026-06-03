@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:prbd_2526_c06/core/Widgets/confirm_dialog.dart';
 import 'package:prbd_2526_c06/core/tools/date_formatters.dart';
+import 'package:prbd_2526_c06/core/tools/service_time_picker.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/core/widgets/status_badge.dart';
 import 'package:prbd_2526_c06/model/service.dart';
@@ -45,16 +47,49 @@ class _RestaurantManagementReservationsMockupScreenState
     ).then((_) => refreshManagerReservations(ref, widget.restaurantId));
   }
 
-  void _openEditService(BuildContext context, Service? service) {
+  void _openEditService(
+    BuildContext context,
+    Service? service, {
+    int? initialDayOfWeek,
+  }) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => EditServicePage(
           restaurantId: widget.restaurantId,
           service: service,
+          initialDayOfWeek: initialDayOfWeek,
         ),
       ),
+    ).then((_) {
+      ref.invalidate(restaurantServicesProvider(widget.restaurantId));
+    });
+  }
+
+  Future<void> _deleteService(BuildContext context, Service service) async {
+    final ok = await showConfirmDialog(
+      context,
+      title: 'Supprimer le service',
+      message:
+          'Supprimer le service ${formatServiceTimeLabel(service.startTime)} - '
+          '${formatServiceTimeLabel(service.endTime)} ?',
+      isDestructive: true,
     );
+    if (!ok || !context.mounted) return;
+
+    try {
+      await service.delete();
+      ref.invalidate(restaurantServicesProvider(widget.restaurantId));
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Service supprimé')),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$e')),
+      );
+    }
   }
 
   void _openEditTable(BuildContext context, model.Table? table) {
@@ -240,25 +275,25 @@ class _RestaurantManagementReservationsMockupScreenState
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Erreur : $e')),
         data: (list) {
-          if (list.isEmpty) {
-            return const Center(child: Text('Aucun service pour ce restaurant'));
+          final byDay = <int, List<Service>>{};
+          for (final s in list) {
+            byDay.putIfAbsent(s.dayOfWeek, () => []).add(s);
           }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: list.length,
-            itemBuilder: (context, i) {
-              final s = list[i];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                child: ListTile(
-                  title: Text(
-                    '${_serviceDayLabel(s.dayOfWeek)} — ${s.startTime} → ${s.endTime}',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _openEditService(context, s),
+          for (final dayServices in byDay.values) {
+            dayServices.sort((a, b) => a.startTime.compareTo(b.startTime));
+          }
+
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+            children: [
+              for (int day = 1; day <= 7; day++)
+                _ServiceDayCard(
+                  dayOfWeek: day,
+                  services: byDay[day] ?? const [],
+                  onEdit: (s) => _openEditService(context, s),
+                  onDelete: (s) => _deleteService(context, s),
                 ),
-              );
-            },
+            ],
           );
         },
       ),
@@ -348,23 +383,72 @@ class _RestaurantManagementReservationsMockupScreenState
   }
 }
 
-String _serviceDayLabel(int day) {
-  switch (day) {
-    case 1:
-      return 'Lundi';
-    case 2:
-      return 'Mardi';
-    case 3:
-      return 'Mercredi';
-    case 4:
-      return 'Jeudi';
-    case 5:
-      return 'Vendredi';
-    case 6:
-      return 'Samedi';
-    case 7:
-      return 'Dimanche';
-    default:
-      return 'Jour $day';
+class _ServiceDayCard extends StatelessWidget {
+  const _ServiceDayCard({
+    required this.dayOfWeek,
+    required this.services,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final int dayOfWeek;
+  final List<Service> services;
+  final void Function(Service service) onEdit;
+  final void Function(Service service) onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final dayLabel = serviceDayLabel(dayOfWeek);
+
+    if (services.isEmpty) {
+      return Card(
+        margin: const EdgeInsets.only(bottom: 16),
+        color: Colors.grey[100],
+        child: ListTile(
+          leading: Icon(Icons.schedule, color: Colors.grey[600]),
+          title: Text(
+            dayLabel,
+            style: TextStyle(color: Colors.grey[600]),
+          ),
+          subtitle: const Text(
+            'Aucun service',
+            style: TextStyle(color: Colors.grey),
+          ),
+        ),
+      );
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ExpansionTile(
+        leading: const Icon(Icons.schedule),
+        title: Text(dayLabel),
+        subtitle: Text(servicesDaySummary(services)),
+        children: [
+          for (final s in services)
+            ListTile(
+              title: Text(
+                '${formatServiceTimeLabel(s.startTime)} - '
+                '${formatServiceTimeLabel(s.endTime)}',
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    tooltip: 'Modifier',
+                    onPressed: () => onEdit(s),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    tooltip: 'Supprimer le service',
+                    onPressed: () => onDelete(s),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
