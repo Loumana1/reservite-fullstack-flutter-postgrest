@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../core/services/api_client.dart';
+import 'table.dart' as model;
 
 class Reservation {
   const Reservation({
@@ -15,6 +16,7 @@ class Reservation {
     this.restaurantCity,
     this.clientFullName,
     this.clientEmail,
+    this.assignedTables = const [],
   });
 
   final int id;
@@ -28,6 +30,7 @@ class Reservation {
   final String? restaurantCity;
   final String? clientFullName;
   final String? clientEmail;
+  final List<model.Table> assignedTables;
 
 
   factory Reservation.fromJson(Map<String, dynamic> json) {
@@ -43,7 +46,9 @@ class Reservation {
       restaurantCity: json['restaurant_city'] as String?,
       clientFullName: json['client_full_name'] as String?,
       clientEmail: json['client_email'] as String?,
-
+      assignedTables: (json['assigned_tables'] as List<dynamic>? ?? [])
+          .map((e) => model.Table.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 
