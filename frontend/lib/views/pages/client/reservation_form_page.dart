@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prbd_2526_c06/core/tools/date_formatters.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
+import 'package:prbd_2526_c06/core/widgets/confirm_dialog.dart';
+import 'package:prbd_2526_c06/model/reservation.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/model/slot.dart';
+import 'package:prbd_2526_c06/providers/reservation_detail_provider.dart';
 import 'package:prbd_2526_c06/providers/reservation_form_provider.dart';
-
 import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 
 class ReservationFormPage extends ConsumerStatefulWidget {
-  const ReservationFormPage({super.key, required this.restaurant});
+  const ReservationFormPage({super.key, required this.restaurant, this.existingReservation});
 
   final Restaurant restaurant;
+  final Reservation? existingReservation;
 
   @override
   ConsumerState<ReservationFormPage> createState() =>
@@ -20,6 +23,11 @@ class ReservationFormPage extends ConsumerStatefulWidget {
 
 class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
   bool _submitting = false;
+
+  bool get _isEditing => widget.existingReservation != null;
+
+  ({int restaurantId, int? reservationId}) get _providerKey =>
+      (restaurantId: widget.restaurant.id, reservationId: widget.existingReservation?.id);
 
   Future<void> _pickDate(
     ReservationFormNotifier notifier,
@@ -39,23 +47,52 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
   }
 
   Future<void> _submit(ReservationFormNotifier notifier) async {
+    final existing = widget.existingReservation;
+    if (_isEditing && existing != null && existing.status == 'confirmed') {
+      final simTime = ref.read(simulatedTimeProvider).value ?? DateTime.now();
+      if (existing.datetime.isAfter(simTime)) {
+        final ok = await showConfirmDialog(
+          context,
+          title: 'Attention',
+          message:
+              'Cette réservation est actuellement confirmée. '
+              'La modifier la remettra en attente et libérera les tables attribuées. '
+              'Voulez-vous continuer ?',
+        );
+        if (!ok || !mounted) return;
+      }
+    }
+
     setState(() => _submitting = true);
-    final created = await notifier.submit();
+    final result = await notifier.submit();
     if (!mounted) return;
     setState(() => _submitting = false);
 
-    if (created != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Réservation créée avec succès !'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Navigator.popUntil(context, ModalRoute.withName('/home_client'));
+    if (result != null) {
+      if (_isEditing) {
+        ref.invalidate(reservationDetailProvider(result.id));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Réservation modifiée avec succès !'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Réservation créée avec succès !'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.popUntil(context, ModalRoute.withName('/home_client'));
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Échec de la création de la réservation'),
+        SnackBar(
+          content: Text(_isEditing
+              ? 'Échec de la modification de la réservation'
+              : 'Échec de la création de la réservation'),
           backgroundColor: Colors.red,
         ),
       );
@@ -66,9 +103,8 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final restaurant = widget.restaurant;
-    final state = ref.watch(reservationFormProvider(restaurant.id));
-    final notifier =
-        ref.read(reservationFormProvider(restaurant.id).notifier);
+    final state = ref.watch(reservationFormProvider(_providerKey));
+    final notifier = ref.read(reservationFormProvider(_providerKey).notifier);
     final simTime =
         ref.watch(simulatedTimeProvider).value ?? DateTime.now();
     final selectedDate = state.selectedDate;
@@ -81,7 +117,7 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
 
     return Scaffold(
       appBar: ReserviteAppBar(
-        title: 'Nouvelle réservation',
+        title: _isEditing ? 'Modifier la réservation' : 'Nouvelle réservation',
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -294,7 +330,9 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
                       )
                     : const Icon(Icons.check),
                 label: Text(
-                  _submitting ? 'Création…' : 'Créer la réservation',
+                  _submitting
+                      ? (_isEditing ? 'Modification…' : 'Création…')
+                      : (_isEditing ? 'Modifier la réservation' : 'Créer la réservation'),
                 ),
               ),
             ],
