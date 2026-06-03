@@ -9,6 +9,7 @@ class ReservationFormState {
   const ReservationFormState({
     required this.restaurantId,
     required this.selectedDate,
+    this.reservationId,
     this.selectedSlot,
     this.guests = 2,
     this.specialRequests = '',
@@ -19,6 +20,7 @@ class ReservationFormState {
   });
 
   final int restaurantId;
+  final int? reservationId;
   final DateTime selectedDate;
   final Slot? selectedSlot;
   final int guests;
@@ -41,6 +43,7 @@ class ReservationFormState {
   }) =>
       ReservationFormState(
         restaurantId: restaurantId,
+        reservationId: reservationId,
         selectedDate: selectedDate ?? this.selectedDate,
         selectedSlot:
             clearSelectedSlot ? null : (selectedSlot ?? this.selectedSlot),
@@ -53,15 +56,21 @@ class ReservationFormState {
       );
 }
 
+typedef ReservationFormArg = ({int restaurantId, int? reservationId});
+
 final reservationFormProvider = NotifierProvider.family<
-    ReservationFormNotifier, ReservationFormState, int>(
+    ReservationFormNotifier, ReservationFormState, ReservationFormArg>(
   ReservationFormNotifier.new,
 );
 
 class ReservationFormNotifier extends Notifier<ReservationFormState> {
-  ReservationFormNotifier(this.restaurantId);
+  ReservationFormNotifier(this.arg);
 
-  final int restaurantId;
+  final ReservationFormArg arg;
+
+  int get restaurantId => arg.restaurantId;
+  int? get reservationId => arg.reservationId;
+  
   Timer? _guestsDebounce;
 
   @override
@@ -76,6 +85,7 @@ class ReservationFormNotifier extends Notifier<ReservationFormState> {
 
     return ReservationFormState(
       restaurantId: restaurantId,
+      reservationId: reservationId,
       selectedDate: initialDate,
     );
   }
@@ -90,6 +100,7 @@ class ReservationFormNotifier extends Notifier<ReservationFormState> {
       final resp = await SlotsResponse.fetch(
         restaurantId: restaurantId,
         date: date,
+        excludeReservationId: reservationId,
       );
       final firstAvailable = resp.slots.where((s) => s.available).isNotEmpty
           ? resp.slots.firstWhere((s) => s.available)
@@ -132,6 +143,7 @@ class ReservationFormNotifier extends Notifier<ReservationFormState> {
         restaurantId: restaurantId,
         datetime: slot.datetime,
         guests: state.guests,
+        excludeReservationId: reservationId,
       );
       state = state.copyWith(capacityOk: ok, checkingCapacity: false);
     } catch (_) {
@@ -149,6 +161,7 @@ class ReservationFormNotifier extends Notifier<ReservationFormState> {
         numberOfGuests: state.guests,
         specialRequests:
             state.specialRequests.isEmpty ? null : state.specialRequests,
+        reservationId: reservationId,
       );
       ref
           .read(clientReservationsProvider.notifier)
