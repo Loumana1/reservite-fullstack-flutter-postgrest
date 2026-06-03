@@ -110,8 +110,9 @@ class ReservationDetailsPage extends ConsumerWidget {
   Future<void> _onCancelPressed(BuildContext context, WidgetRef ref) async {
     final ok = await showConfirmDialog(
       context,
-      title: 'Confirmation',
-      message: 'Annuler cette réservation ?',
+      title: 'Annuler la réservation',
+      message: 'Êtes-vous sûr de vouloir annuler cette réservation ?',
+      isDestructive: true,
     );
     if (!ok || !context.mounted) return;
 

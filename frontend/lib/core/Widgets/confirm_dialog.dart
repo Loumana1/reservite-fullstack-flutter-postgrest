@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
 Future<bool> showConfirmDialog(
-    BuildContext context, {
-      required String title,
-      required String message,
-    }) async {
+  BuildContext context, {
+  required String title,
+  required String message,
+  bool isDestructive = false,
+  String confirmText = 'Oui',
+  String cancelText = 'Non',
+}) async {
   final result = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
@@ -13,11 +16,14 @@ Future<bool> showConfirmDialog(
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Non'),
+          child: Text(cancelText),
         ),
         TextButton(
           onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('Oui'),
+          child: Text(
+            confirmText,
+            style: isDestructive ? const TextStyle(color: Colors.red) : null,
+          ),
         ),
       ],
     ),
