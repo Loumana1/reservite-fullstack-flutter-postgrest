@@ -58,6 +58,8 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
     });
   }
 
+
+
   Future<void> _save() async {
     final tableNumber = int.tryParse(_numberController.text.trim());
     if (tableNumber == null || tableNumber <= 0) {

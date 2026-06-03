@@ -11,6 +11,7 @@ import 'package:prbd_2526_c06/model/table.dart' as model;
 import 'package:prbd_2526_c06/providers/manager_reservations_provider.dart';
 import 'package:prbd_2526_c06/providers/restaurant_services_provider.dart';
 import 'package:prbd_2526_c06/providers/restaurant_tables_provider.dart';
+import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 import 'package:prbd_2526_c06/views/pages/manager/manager_reservation_details_page.dart';
 import 'package:prbd_2526_c06/views/pages/manager/edit_service_page.dart';
 import 'package:prbd_2526_c06/views/pages/manager/edit_table_page.dart';
@@ -104,7 +105,8 @@ class _RestaurantManagementReservationsMockupScreenState
     );
   }
 
-  void _onRefresh() {
+  Future<void> _onRefresh() async {
+    await ref.read(simulatedTimeProvider.notifier).refresh();
     switch (_currentIndex) {
       case 0:
         refreshManagerReservations(ref, widget.restaurantId);

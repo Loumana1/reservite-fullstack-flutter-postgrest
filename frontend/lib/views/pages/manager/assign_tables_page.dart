@@ -38,6 +38,15 @@ class _AssignTablesPageState extends ConsumerState<AssignTablesPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
+        onRefresh: () {
+          ref.invalidate(restaurantTablesProvider(widget.restaurantId));
+          ref.invalidate(managerReservationDetailProvider(
+            ManagerReservationDetailParams(
+              reservationId: widget.reservationId,
+              restaurantId: widget.restaurantId,
+            ),
+          ));
+        },
       ),
       body: tablesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),

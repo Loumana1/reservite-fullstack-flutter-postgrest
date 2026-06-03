@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
+import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 import 'package:prbd_2526_c06/views/pages/manager/restaurant_management_reservations_page.dart';
 
 final managerRestaurantsProvider =
@@ -55,8 +56,10 @@ class HomeManagerPage extends ConsumerWidget {
     return Scaffold(
       appBar: ReserviteAppBar(
         title: 'Mes restaurants',
-        onRefresh: () =>
-            ref.read(managerRestaurantsProvider.notifier).refresh(),
+        onRefresh: () async {
+          await ref.read(simulatedTimeProvider.notifier).refresh();
+          await ref.read(managerRestaurantsProvider.notifier).refresh();
+        },
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),

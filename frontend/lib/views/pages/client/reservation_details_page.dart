@@ -5,7 +5,9 @@ import 'package:prbd_2526_c06/core/widgets/confirm_dialog.dart';
 import 'package:prbd_2526_c06/core/widgets/reservation_detail_card.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
+import 'package:prbd_2526_c06/providers/client_reservations_provider.dart';
 import 'package:prbd_2526_c06/providers/reservation_detail_provider.dart';
+import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 import 'package:prbd_2526_c06/views/pages/client/reservation_form_page.dart';
 
 class ReservationDetailsPage extends ConsumerWidget {
@@ -24,7 +26,11 @@ class ReservationDetailsPage extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        onRefresh: () => refreshReservationDetail(ref, reservationId),
+        onRefresh: () async {
+          await ref.read(simulatedTimeProvider.notifier).refresh();
+          refreshReservationDetail(ref, reservationId);
+          await ref.read(clientReservationsProvider.notifier).refresh();
+        },
       ),
       body: detailAsync.when(
           loading: () => const Center(
@@ -44,6 +50,9 @@ class ReservationDetailsPage extends ConsumerWidget {
             }
 
             final reservation = detail.reservation;
+            final simulatedTime =
+                ref.watch(simulatedTimeProvider).value ?? DateTime.now();
+            final isPast = reservation.datetime.isBefore(simulatedTime);
 
             return SafeArea(
               child: SingleChildScrollView(
@@ -62,22 +71,27 @@ class ReservationDetailsPage extends ConsumerWidget {
                           if (reservation.canEdit)
                             Expanded(
                               child: ElevatedButton.icon(
-                                onPressed: () async {
-                                  final restaurant = await Restaurant.getById(
-                                      reservation.restaurantId);
-                                  if (!context.mounted) return;
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => ReservationFormPage(
-                                        restaurant: restaurant,
-                                        existingReservation: reservation,
-                                      ),
-                                    ),
-                                  ).then((_) {
-                                    refreshReservationDetail(ref, reservationId);
-                                  });
-                                },
+                                onPressed: isPast
+                                    ? null
+                                    : () async {
+                                        final restaurant =
+                                            await Restaurant.getById(
+                                                reservation.restaurantId);
+                                        if (!context.mounted) return;
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                ReservationFormPage(
+                                              restaurant: restaurant,
+                                              existingReservation: reservation,
+                                            ),
+                                          ),
+                                        ).then((_) {
+                                          refreshReservationDetail(
+                                              ref, reservationId);
+                                        });
+                                      },
                                 icon: const Icon(Icons.edit),
                                 label: const Text('Modifier'),
                               ),

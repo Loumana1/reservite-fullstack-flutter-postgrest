@@ -5,6 +5,7 @@ import 'package:prbd_2526_c06/core/tools/date_formatters.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/core/widgets/status_badge.dart';
 import 'package:prbd_2526_c06/providers/manager_reservations_provider.dart';
+import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 import 'package:prbd_2526_c06/views/pages/manager/manager_reservation_details_page.dart';
 
 class RestaurantDashboardPage extends ConsumerWidget {
@@ -38,7 +39,10 @@ class RestaurantDashboardPage extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        onRefresh: () => refreshManagerReservations(ref, restaurantId),
+        onRefresh: () async {
+          await ref.read(simulatedTimeProvider.notifier).refresh();
+          refreshManagerReservations(ref, restaurantId);
+        },
       ),
       body: SafeArea(
         child: Column(
