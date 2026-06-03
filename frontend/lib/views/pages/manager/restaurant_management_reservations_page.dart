@@ -48,18 +48,13 @@ class _RestaurantManagementReservationsMockupScreenState
     ).then((_) => refreshManagerReservations(ref, widget.restaurantId));
   }
 
-  void _openEditService(
-    BuildContext context,
-    Service? service, {
-    int? initialDayOfWeek,
-  }) {
+  void _openEditService(BuildContext context, Service? service) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => EditServicePage(
           restaurantId: widget.restaurantId,
           service: service,
-          initialDayOfWeek: initialDayOfWeek,
         ),
       ),
     ).then((_) {
