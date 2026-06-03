@@ -1,3 +1,8 @@
+
+drop function if exists tgr_check_reservation_table_for_pending_or_cancelled();
+
+
+
 create or replace function tgr_check_reservation_table_for_pending_or_cancelled()
 returns trigger as $$
     begin
@@ -6,7 +11,7 @@ returns trigger as $$
             from reservations
             where id = new.reservation
             and status in ('pending' , 'cancelled')
-        ) then raise exception 'On ne peut pas assigner de table à une reservation en attente ou annulée.';
+        ) then raise exception 'BR-12 : On ne peut pas assigner de table à une reservation en attente ou annulée.';
         end if;
 
         return new;

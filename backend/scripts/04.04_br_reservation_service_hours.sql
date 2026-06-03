@@ -21,7 +21,7 @@ begin
 
 
     if not service_exists and NEW.status != 'cancelled' then
-        raise exception 'L''heure de réservation ne correspond à aucun service ouvert.';
+        raise exception '(BR-4 : L''heure de réservation ne correspond à aucun service ouvert.';
     end if;
 
     return NEW;

@@ -10,7 +10,7 @@ create or replace function trg_check_reservation_status_transitions()
 
               if new.status not in ('confirmed', 'cancelled')
               then
-                raise exception 'Une reservation en attente ne peu être que : confirmée ou annulée';
+                raise exception 'BR-9 : Une reservation en attente ne peu être que : confirmée ou annulée';
               end if;
 
         elsif old.status = 'confirmed'
@@ -19,7 +19,7 @@ create or replace function trg_check_reservation_status_transitions()
               then
                     if new.datetime<= get_current_time()
                     then
-                        raise exception 'Retour au statut en attente impossible car la réservation est dans le passé ou en cours.';
+                        raise exception 'BR-9 : Retour au statut en attente impossible car la réservation est dans le passé ou en cours.';
                     end if;
 
               end if;

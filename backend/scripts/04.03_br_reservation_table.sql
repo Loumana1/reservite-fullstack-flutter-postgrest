@@ -15,7 +15,7 @@ create or replace function trg_check_reservation_table_same_restaurant()
 
 
         if res_restaurant is distinct from tab_restaurant THEN
-            raise exception ' La table  n''appartient pas au même restaurant que la réservation.';
+            raise exception '(BR-3 : La table  n''appartient pas au même restaurant que la réservation.';
         END IF;
 
 

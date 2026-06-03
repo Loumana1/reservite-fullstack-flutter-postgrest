@@ -35,7 +35,7 @@ create or replace function trg_check_min_manager_on_managers()
 
             )
         then
-            raise exception 'Un restaurant ne peut pas se retrouver sans manager.';
+            raise exception 'BR-10 : Un restaurant ne peut pas se retrouver sans manager.';
         end if;
         RETURN NULL;
     end;

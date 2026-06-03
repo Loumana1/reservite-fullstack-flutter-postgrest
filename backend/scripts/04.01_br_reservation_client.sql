@@ -13,7 +13,7 @@ returns trigger as $$
         ) then
             return new ;
         else
-            raise exception 'Une réservation doit appartenir à un client.';
+            raise exception 'BR-1 : Une réservation doit appartenir à un client.';
         end if;
     end;
     $$ language plpgsql;
