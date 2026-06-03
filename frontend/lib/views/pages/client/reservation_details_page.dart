@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:prbd_2526_c06/core/widgets/confirm_dialog.dart';
-import 'package:prbd_2526_c06/core/widgets/reservation_detail_card.dart';
+import 'package:prbd_2526_c06/core/Widgets/confirm_dialog.dart';
+import 'package:prbd_2526_c06/core/Widgets/reservation_detail_card.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/providers/client_reservations_provider.dart';

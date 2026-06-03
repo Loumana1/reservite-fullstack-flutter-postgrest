@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:prbd_2526_c06/core/Widgets/confirm_dialog.dart';
-import 'package:prbd_2526_c06/core/tools/date_formatters.dart';
+import 'package:prbd_2526_c06/core/Widgets/reservation_tile.dart';
 import 'package:prbd_2526_c06/core/tools/service_time_picker.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
-import 'package:prbd_2526_c06/core/widgets/status_badge.dart';
 import 'package:prbd_2526_c06/model/service.dart';
 import 'package:prbd_2526_c06/model/table.dart' as model;
 import 'package:prbd_2526_c06/providers/manager_reservations_provider.dart';
@@ -177,82 +176,12 @@ class _RestaurantManagementReservationsMockupScreenState
                   itemCount: list.length,
                   itemBuilder: (context, i) {
                     final r = list[i];
-                    final clientName =
-                        r.clientFullName ?? 'Client #${r.clientId}';
-
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: InkWell(
-                        onTap: () => _openDetails(context, r.id),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              Tooltip(
-                                message: statusLabel(r.status),
-                                child: statusIcon(r.status),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      clientName,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.restaurant, size: 16),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          widget.restaurantName,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.access_time, size: 16),
-                                        const SizedBox(width: 4),
-                                        Flexible(
-                                          child: Text(
-                                            '${formatReservationDateLabel(r.datetime)} '
-                                            '${formatReservationTimeLabel(r.datetime)}',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey[600],
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        const Icon(Icons.people, size: 16),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          '${r.numberOfGuests} convives',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(Icons.chevron_right),
-                            ],
-                          ),
-                        ),
-                      ),
+                    return ReservationTile(
+                      reservation: r,
+                      title: r.clientFullName ?? 'Client #${r.clientId}',
+                      subtitle: widget.restaurantName,
+                      subtitleIcon: Icons.restaurant,
+                      onTap: () => _openDetails(context, r.id),
                     );
                   },
                 );
