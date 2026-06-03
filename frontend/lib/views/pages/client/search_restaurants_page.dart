@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/providers/restaurants_provider.dart';
+import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 import 'package:prbd_2526_c06/views/pages/client/restaurant_details_page.dart';
 
 class SearchRestaurantsPage extends ConsumerStatefulWidget {
@@ -57,7 +58,10 @@ class _SearchRestaurantsPageState extends ConsumerState<SearchRestaurantsPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        onRefresh: () => ref.read(restaurantsProvider.notifier).refresh(),
+        onRefresh: () async {
+          await ref.read(simulatedTimeProvider.notifier).refresh();
+          await ref.read(restaurantsProvider.notifier).refresh();
+        },
       ),
       body: SafeArea(
         child: Column(

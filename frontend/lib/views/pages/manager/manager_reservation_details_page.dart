@@ -9,6 +9,7 @@ import 'package:prbd_2526_c06/model/reservation.dart';
 import 'package:prbd_2526_c06/model/table.dart' as model;
 import 'package:prbd_2526_c06/providers/manager_reservation_detail_provider.dart';
 import 'package:prbd_2526_c06/providers/manager_reservations_provider.dart';
+import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 import 'package:prbd_2526_c06/views/pages/manager/assign_tables_page.dart';
 
 class ManagerReservationDetailsPage extends ConsumerWidget {
@@ -39,7 +40,11 @@ class ManagerReservationDetailsPage extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        onRefresh: () => refreshManagerReservationDetail(ref, _params),
+        onRefresh: () async {
+          await ref.read(simulatedTimeProvider.notifier).refresh();
+          refreshManagerReservationDetail(ref, _params);
+          refreshManagerReservations(ref, restaurantId);
+        },
       ),
       body: detailAsync.when(
         loading: () => const Center(

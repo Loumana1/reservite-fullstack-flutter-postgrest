@@ -122,10 +122,7 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        onRefresh: () async {
-          await ref.read(simulatedTimeProvider.notifier).refresh();
-          await notifier.loadSlots(state.selectedDate);
-        },
+        onRefresh: () => notifier.reload(),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -303,6 +300,9 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
                 ),
               const SizedBox(height: 16),
               TextFormField(
+                key: ValueKey(
+                  'special-${state.specialRequests}-${state.selectedDate}',
+                ),
                 initialValue: state.specialRequests,
                 decoration: const InputDecoration(
                   labelText: 'Demandes spéciales (optionnel)',

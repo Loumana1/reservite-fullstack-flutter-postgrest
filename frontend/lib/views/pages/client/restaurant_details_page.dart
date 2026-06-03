@@ -4,6 +4,7 @@ import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/model/service.dart';
 import 'package:prbd_2526_c06/providers/restaurant_services_provider.dart';
+import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 import 'package:prbd_2526_c06/views/pages/client/reservation_form_page.dart';
 
 class RestaurantDetailsPage extends ConsumerWidget {
@@ -22,8 +23,10 @@ class RestaurantDetailsPage extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        onRefresh: () =>
-            ref.invalidate(restaurantServicesProvider(restaurant.id)),
+        onRefresh: () async {
+          await ref.read(simulatedTimeProvider.notifier).refresh();
+          ref.invalidate(restaurantServicesProvider(restaurant.id));
+        },
       ),
       body: SafeArea(
         child: SingleChildScrollView(

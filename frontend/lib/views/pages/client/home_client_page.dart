@@ -4,6 +4,7 @@ import 'package:prbd_2526_c06/core/tools/date_formatters.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/core/widgets/status_badge.dart';
 import 'package:prbd_2526_c06/providers/client_reservations_provider.dart';
+import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
 import 'package:prbd_2526_c06/views/pages/client/reservation_details_page.dart';
 import 'package:prbd_2526_c06/views/pages/client/search_restaurants_page.dart';
@@ -28,7 +29,10 @@ class HomeClientPage extends ConsumerWidget {
     return Scaffold(
       appBar: ReserviteAppBar(
         title: 'Mes réservations',
-        onRefresh: () => ref.read(clientReservationsProvider.notifier).refresh(),
+        onRefresh: () async {
+          await ref.read(simulatedTimeProvider.notifier).refresh();
+          await ref.read(clientReservationsProvider.notifier).refresh();
+        },
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
