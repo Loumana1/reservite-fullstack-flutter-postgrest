@@ -90,7 +90,7 @@ class _ManagerReservationBody extends ConsumerWidget {
       services: detail.services,
       simulatedTime: detail.simulatedTime,
     );
-    final (firstName, lastName) = splitClientFullName(r.clientFullName);
+    final (firstName, _) = splitClientFullName(r.clientFullName);
     final special = r.specialRequests?.trim();
 
     return SafeArea(
@@ -102,10 +102,9 @@ class _ManagerReservationBody extends ConsumerWidget {
             _SectionCard(
               title: 'Informations client',
               children: [
-                _InfoRow(Icons.person, 'Prénom: $firstName'),
+                _InfoRow(Icons.person, 'Nom: $firstName'),
                 const SizedBox(height: 8),
-                _InfoRow(Icons.badge_outlined, 'Nom: $lastName'),
-                const SizedBox(height: 8),
+
                 _InfoRow(
                   Icons.email,
                   'Email: ${r.clientEmail ?? 'Non renseigné'}',
