@@ -4,8 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prbd_2526_c06/core/tools/date_formatters.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/core/widgets/status_badge.dart';
+import 'package:prbd_2526_c06/model/service.dart';
+import 'package:prbd_2526_c06/model/table.dart' as model;
 import 'package:prbd_2526_c06/providers/manager_reservations_provider.dart';
-import 'package:prbd_2526_c06/views/pages/client/reservation_details_page.dart';
+import 'package:prbd_2526_c06/providers/restaurant_services_provider.dart';
+import 'package:prbd_2526_c06/providers/restaurant_tables_provider.dart';
+import 'package:prbd_2526_c06/views/pages/manager/manager_reservation_details_page.dart';
+import 'package:prbd_2526_c06/views/pages/manager/edit_service_page.dart';
+import 'package:prbd_2526_c06/views/pages/manager/edit_table_page.dart';
 
 class RestaurantManagementReservationsPage extends ConsumerStatefulWidget {
   const RestaurantManagementReservationsPage({
@@ -30,9 +36,48 @@ class _RestaurantManagementReservationsMockupScreenState
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ReservationDetailsPage(reservationId: reservationId),
+        builder: (_) => ManagerReservationDetailsPage(
+          reservationId: reservationId,
+          restaurantId: widget.restaurantId,
+          returnTab: _currentIndex,
+        ),
+      ),
+    ).then((_) => refreshManagerReservations(ref, widget.restaurantId));
+  }
+
+  void _openEditService(BuildContext context, Service? service) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditServicePage(
+          restaurantId: widget.restaurantId,
+          service: service,
+        ),
       ),
     );
+  }
+
+  void _openEditTable(BuildContext context, model.Table? table) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditTablePage(
+          restaurantId: widget.restaurantId,
+          table: table,
+        ),
+      ),
+    );
+  }
+
+  void _onRefresh() {
+    switch (_currentIndex) {
+      case 0:
+        refreshManagerReservations(ref, widget.restaurantId);
+      case 1:
+        ref.invalidate(restaurantServicesProvider(widget.restaurantId));
+      case 2:
+        ref.invalidate(restaurantTablesProvider(widget.restaurantId));
+    }
   }
 
   Widget _buildReservationsTab() {
@@ -187,6 +232,71 @@ class _RestaurantManagementReservationsMockupScreenState
     );
   }
 
+  Widget _buildServicesTab() {
+    final services = ref.watch(restaurantServicesProvider(widget.restaurantId));
+
+    return SafeArea(
+      child: services.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Erreur : $e')),
+        data: (list) {
+          if (list.isEmpty) {
+            return const Center(child: Text('Aucun service pour ce restaurant'));
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: list.length,
+            itemBuilder: (context, i) {
+              final s = list[i];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                child: ListTile(
+                  title: Text(
+                    '${_serviceDayLabel(s.dayOfWeek)} — ${s.startTime} → ${s.endTime}',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _openEditService(context, s),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTablesTab() {
+    final tables = ref.watch(restaurantTablesProvider(widget.restaurantId));
+
+    return SafeArea(
+      child: tables.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Erreur : $e')),
+        data: (list) {
+          if (list.isEmpty) {
+            return const Center(child: Text('Aucune table pour ce restaurant'));
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: list.length,
+            itemBuilder: (context, i) {
+              final t = list[i];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                child: ListTile(
+                  title: Text('Table ${t.tableNumble}'),
+                  subtitle: Text('${t.capacity} places'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _openEditTable(context, t),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -196,14 +306,25 @@ class _RestaurantManagementReservationsMockupScreenState
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        onRefresh: () =>
-            refreshManagerReservations(ref, widget.restaurantId),
+        onRefresh: _onRefresh,
       ),
-      body: _currentIndex == 0
-          ? _buildReservationsTab()
-          : (_currentIndex == 1
-              ? const Center(child: Text('Onglet Services (à venir)'))
-              : const Center(child: Text('Onglet Tables (à venir)'))),
+      body: switch (_currentIndex) {
+        0 => _buildReservationsTab(),
+        1 => _buildServicesTab(),
+        _ => _buildTablesTab(),
+      },
+      floatingActionButton: _currentIndex == 0
+          ? null
+          : FloatingActionButton(
+              onPressed: () {
+                if (_currentIndex == 1) {
+                  _openEditService(context, null);
+                } else {
+                  _openEditTable(context, null);
+                }
+              },
+              child: const Icon(Icons.add),
+            ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
@@ -224,5 +345,26 @@ class _RestaurantManagementReservationsMockupScreenState
         ],
       ),
     );
+  }
+}
+
+String _serviceDayLabel(int day) {
+  switch (day) {
+    case 1:
+      return 'Lundi';
+    case 2:
+      return 'Mardi';
+    case 3:
+      return 'Mercredi';
+    case 4:
+      return 'Jeudi';
+    case 5:
+      return 'Vendredi';
+    case 6:
+      return 'Samedi';
+    case 7:
+      return 'Dimanche';
+    default:
+      return 'Jour $day';
   }
 }

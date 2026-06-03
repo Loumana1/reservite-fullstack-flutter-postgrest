@@ -1,13 +1,5 @@
 set search_path to public, auth;
 
-drop type if exists table_info cascade;
-create type table_info as
-    (
-    id           integer,
-    restaurant   integer,
-    table_number integer,
-    capacity     integer
-    );
 
 
 create or replace function get_tables(restaurant_id integer)

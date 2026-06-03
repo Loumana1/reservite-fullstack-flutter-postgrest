@@ -1,6 +1,16 @@
 set search_path to public;
 
+
 drop type if exists reservation_info cascade;
+drop type if exists table_info cascade;
+create type table_info as
+(
+    id           integer,
+    restaurant   integer,
+    table_number integer,
+    capacity     integer
+);
+
 create type reservation_info as
 (
     id               integer,
@@ -13,7 +23,8 @@ create type reservation_info as
     restaurant_name  varchar,
     restaurant_city  varchar,
     client_full_name varchar,
-    client_email     varchar
+    client_email     varchar,
+    assigned_tables  table_info[]
 );
 
 create or replace function get_reservation(reservation_id integer)
@@ -31,7 +42,15 @@ begin
     select res.id, res.client, res.restaurant, res.datetime, res.number_of_guests,
            res.status::varchar, res.special_requests,
            rest.name, rest.city,
-           u.full_name, u.email
+           u.full_name, u.email,
+           coalesce((
+               select array_agg(
+                          (t.id, t.restaurant, t.table_number, t.capacity)::table_info
+                          order by t.capacity, t.table_number)
+               from reservation_tables rt
+                        join tables t on t.id = rt."table"
+               where rt.reservation = res.id
+           ), '{}')
     into result
     from reservations res
              join restaurants rest on rest.id = res.restaurant
@@ -74,7 +93,15 @@ begin
         select res.id, res.client, res.restaurant, res.datetime, res.number_of_guests,
                res.status::varchar, res.special_requests,
                rest.name, rest.city,
-               u.full_name, u.email
+               u.full_name, u.email,
+               coalesce((
+                   select array_agg(
+                              (t.id, t.restaurant, t.table_number, t.capacity)::table_info
+                              order by t.capacity, t.table_number)
+                   from reservation_tables rt
+                            join tables t on t.id = rt."table"
+                   where rt.reservation = res.id
+               ), '{}')
         from reservations res
                  join restaurants rest on rest.id = res.restaurant
                  join users u on u.id = res.client
@@ -87,7 +114,15 @@ begin
         select res.id, res.client, res.restaurant, res.datetime, res.number_of_guests,
                res.status::varchar, res.special_requests,
                rest.name, rest.city,
-               u.full_name, u.email
+               u.full_name, u.email,
+               coalesce((
+                   select array_agg(
+                              (t.id, t.restaurant, t.table_number, t.capacity)::table_info
+                              order by t.capacity, t.table_number)
+                   from reservation_tables rt
+                            join tables t on t.id = rt."table"
+                   where rt.reservation = res.id
+               ), '{}')
         from reservations res
                  join restaurants rest on rest.id = res.restaurant
                  join users u on u.id = res.client
@@ -102,7 +137,7 @@ $$ language plpgsql security definer;
 
 grant execute on function get_reservations(integer, text) to client, manager;
 
-/* ===== save_reservation (create OU update) ===== */
+/* ===== save_reservation  ===== */
 create or replace function save_reservation(restaurant_id integer,
                                             datetime timestamp,
                                             number_of_guests integer,
@@ -121,7 +156,7 @@ begin
     v_uid := auth.id()::integer;
 
     if save_reservation.reservation_id is null then
-        -- création
+
         insert into reservations (client, restaurant, datetime, number_of_guests,
                                   special_requests, status)
         values (v_uid, save_reservation.restaurant_id, save_reservation.datetime,
@@ -129,7 +164,7 @@ begin
                 'pending'::status_type)
         returning id into new_id;
     else
-        -- modification : doit appartenir au client + repasse à "pending"
+
         update reservations
         set restaurant       = save_reservation.restaurant_id,
             datetime         = save_reservation.datetime,
@@ -142,7 +177,7 @@ begin
         if not found then
             raise exception 'Réservation non trouvée ou accès refusé';
         end if;
-        -- on libère les tables éventuellement attribuées
+
         delete from reservation_tables where reservation = save_reservation.reservation_id;
         new_id := save_reservation.reservation_id;
     end if;
@@ -180,7 +215,7 @@ begin
         raise exception 'Réservation non trouvée ou accès refusé';
     end if;
 
-    -- on libère les tables
+
     delete from reservation_tables where reservation = cancel_reservation.reservation_id;
 
     return get_reservation(cancel_reservation.reservation_id);
@@ -189,7 +224,7 @@ $$ language plpgsql security definer;
 
 grant execute on function cancel_reservation(integer) to client, manager;
 
-/* confirm_reservation (manager : pending -> confirmed + attribution tables)*/
+/* confirm_reservation */
 create or replace function confirm_reservation(reservation_id integer, table_ids int[])
     returns reservation_info as
 $$
@@ -215,7 +250,7 @@ begin
     update reservations set status = 'confirmed'::status_type
     where id = confirm_reservation.reservation_id;
 
-    -- on libère puis on réassigne les tables
+
     delete from reservation_tables where reservation = confirm_reservation.reservation_id;
     if table_ids is not null then
         foreach tid in array table_ids loop
