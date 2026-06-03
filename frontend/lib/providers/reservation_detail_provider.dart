@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:prbd_2526_c06/core/services/reservation_service.dart';
 import 'package:prbd_2526_c06/model/reservation.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/providers/client_reservations_provider.dart';
@@ -18,7 +17,7 @@ class ReservationDetailState {
 final reservationDetailProvider =
     FutureProvider.family<ReservationDetailState?, int>(
   (ref, reservationId) async {
-    final reservation = await ReservationService.getById(reservationId);
+    final reservation = await Reservation.getById(reservationId);
     if (reservation == null) return null;
 
     return ReservationDetailState(
@@ -37,7 +36,8 @@ Future<Reservation> cancelReservationDetail(
   WidgetRef ref,
   int reservationId,
 ) async {
-  final updated = await ReservationService.cancel(reservationId);
+  final reservation = await Reservation.getById(reservationId);
+  final updated = await reservation.cancel();
   final listNotifier = ref.read(clientReservationsProvider.notifier);
   if (listNotifier.statusFilter == 'pending' && updated.status == 'cancelled') {
     listNotifier.removeReservation(reservationId);
