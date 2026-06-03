@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
+import 'package:prbd_2526_c06/model/reservation.dart';
 import 'package:prbd_2526_c06/model/table.dart' as model;
 import 'package:prbd_2526_c06/providers/restaurant_tables_provider.dart';
 
@@ -21,8 +22,9 @@ class EditTablePage extends ConsumerStatefulWidget {
 
 class _EditTablePageState extends ConsumerState<EditTablePage> {
   late final TextEditingController _numberController;
-  late final TextEditingController _capacityController;
+  late int _capacity;
   bool _submitting = false;
+  bool? _tableHasReservations; // null = chargement, true = bloqué, false = OK
 
   @override
   void initState() {
@@ -30,24 +32,37 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
     _numberController = TextEditingController(
       text: '${widget.table?.tableNumble ?? 1}',
     );
-    _capacityController = TextEditingController(
-      text: '${widget.table?.capacity ?? 2}',
-    );
+    _capacity = widget.table?.capacity ?? 2;
+
+    if (widget.table != null) {
+      _checkReservations();
+    }
   }
 
   @override
   void dispose() {
     _numberController.dispose();
-    _capacityController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkReservations() async {
+    final reservations = await Reservation.getAll(
+      restaurantId: widget.restaurantId,
+      statusFilter: 'confirmed',
+    );
+    if (!mounted) return;
+    setState(() {
+      _tableHasReservations = reservations.any(
+        (r) => r.assignedTables.any((t) => t.id == widget.table!.id),
+      );
+    });
   }
 
   Future<void> _save() async {
     final tableNumber = int.tryParse(_numberController.text.trim());
-    final capacity = int.tryParse(_capacityController.text.trim());
-    if (tableNumber == null || tableNumber <= 0 || capacity == null || capacity <= 0) {
+    if (tableNumber == null || tableNumber <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Numéro et capacité doivent être des entiers positifs')),
+        const SnackBar(content: Text('Le numéro de table doit être un entier positif')),
       );
       return;
     }
@@ -58,7 +73,7 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
         widget.table?.id,
         widget.restaurantId,
         tableNumber,
-        capacity,
+        _capacity,
       );
       ref.invalidate(restaurantTablesProvider(widget.restaurantId));
       if (mounted) Navigator.pop(context);
@@ -76,6 +91,7 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.table != null;
+    final blocked = _tableHasReservations == true;
 
     return Scaffold(
       appBar: ReserviteAppBar(
@@ -91,22 +107,65 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (blocked)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    border: Border.all(color: Colors.orange.shade300),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.warning_amber, color: Colors.orange.shade800),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Cette table est assignée à une réservation confirmée et ne peut pas être modifiée.',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               TextField(
                 controller: _numberController,
-                enabled: !_submitting,
+                enabled: !_submitting && !blocked,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Numéro de table'),
+                decoration: const InputDecoration(
+                  labelText: 'Numéro de table',
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 16),
-              TextField(
-                controller: _capacityController,
-                enabled: !_submitting,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Capacité'),
-              ),
+              if (_tableHasReservations == null && isEdit)
+                const Center(child: CircularProgressIndicator())
+              else
+                Row(
+                  children: [
+                    const Text('Capacité', style: TextStyle(fontSize: 16)),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.remove),
+                      onPressed: !_submitting && !blocked && _capacity > 1
+                          ? () => setState(() => _capacity--)
+                          : null,
+                    ),
+                    Text(
+                      '$_capacity personne${_capacity > 1 ? 's' : ''}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: !_submitting && !blocked
+                          ? () => setState(() => _capacity++)
+                          : null,
+                    ),
+                  ],
+                ),
               const Spacer(),
               ElevatedButton(
-                onPressed: _submitting ? null : _save,
+                onPressed: _submitting || blocked ? null : _save,
                 child: _submitting
                     ? const SizedBox(
                         height: 20,
