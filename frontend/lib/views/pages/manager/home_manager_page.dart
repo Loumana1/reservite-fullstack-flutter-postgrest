@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
-import 'package:prbd_2526_c06/views/pages/manager/restaurant_dashboard_page.dart';
+import 'package:prbd_2526_c06/views/pages/manager/restaurant_management_reservations_page.dart';
 
 final managerRestaurantsProvider =
     AsyncNotifierProvider<ManagerRestaurantsNotifier, List<Restaurant>>(
@@ -40,7 +40,10 @@ class HomeManagerPage extends ConsumerWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => RestaurantDashboardPage(restaurantId, restaurantName),
+        builder: (_) => RestaurantManagementReservationsPage(
+          restaurantId: restaurantId,
+          restaurantName: restaurantName,
+        ),
       ),
     );
   }
