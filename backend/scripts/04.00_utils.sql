@@ -43,3 +43,4 @@ BEGIN
     RETURN svc_id;
     END ;
 $$ LANGUAGE plpgsql;
+grant execute on function get_service_for_reservation(integer, timestamp) to client, manager;
