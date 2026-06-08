@@ -66,7 +66,7 @@ begin
           and (filter_text is null
             or r.name ilike '%' || filter_text || '%'
             or r.city ilike '%' || filter_text || '%')
-        order by r.name
+        order by last_reservation_date desc nulls last, r.name
         limit limit_count + 1;
 end if;
     end;
