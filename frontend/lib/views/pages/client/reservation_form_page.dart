@@ -249,13 +249,13 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
                     return ChoiceChip(
                       label: Text(formatSlotTime(slot.datetime)),
                       selected: isSelected,
-                      onSelected: slot.available
-                          ? (_) => notifier.selectSlot(slot)
-                          : null,
+                      onSelected: slot.available ? (_) => notifier.selectSlot(slot) : null,
+                      backgroundColor: slot.available ? null : Colors.grey[200],
+                      labelStyle: slot.available
+                          ? null
+                          : TextStyle(color: Colors.grey[500], decoration: TextDecoration.lineThrough),
                       labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     );
                   }).toList(),
                 ),
