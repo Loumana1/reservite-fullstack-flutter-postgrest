@@ -16,6 +16,7 @@ class Reservation {
     this.restaurantCity,
     this.clientFullName,
     this.clientEmail,
+    this.clientPhone,
     this.assignedTables = const [],
   });
 
@@ -30,6 +31,7 @@ class Reservation {
   final String? restaurantCity;
   final String? clientFullName;
   final String? clientEmail;
+  final String? clientPhone;
   final List<model.Table> assignedTables;
 
 
@@ -46,6 +48,7 @@ class Reservation {
       restaurantCity: json['restaurant_city'] as String?,
       clientFullName: json['client_full_name'] as String?,
       clientEmail: json['client_email'] as String?,
+      clientPhone: json['client_phone'] as String?,
       assignedTables: (json['assigned_tables'] as List<dynamic>? ?? [])
           .map((e) => model.Table.fromJson(e as Map<String, dynamic>))
           .toList(),
