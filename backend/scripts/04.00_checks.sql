@@ -10,6 +10,9 @@ alter table users
     add constraint users_full_name_min_length
     check ( length(trim(full_name)) >= 3) ,
 
+    add constraint users_phone_format
+        check ( phone is null or phone ~ '^(?:\+32\s?|0)[1-9][0-9\s.-]{7,11}$' ),
+
     add constraint users_passwords_strength
     check (  password ~ '^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$'
     or password ~ '^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[,;.:!?/$%&@#]).{8,}$'
@@ -107,4 +110,4 @@ alter table reservations
     check ( number_of_guests > 0 ),
 
     add constraint special_request_length
-    check (special_requests is null or length(trim(special_requests)) >= 10)
+    check (special_requests is null or length(trim(special_requests)) >= 10);
