@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prbd_2526_c06/model/reservation.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/providers/client_reservations_provider.dart';
+import 'package:prbd_2526_c06/providers/restaurants_provider.dart';
 
 class ReservationDetailState {
   const ReservationDetailState({
@@ -45,5 +46,6 @@ Future<Reservation> cancelReservationDetail(
     listNotifier.patchReservation(updated);
   }
   ref.invalidate(reservationDetailProvider(reservationId));
+  ref.invalidate(restaurantsProvider);
   return updated;
 }
