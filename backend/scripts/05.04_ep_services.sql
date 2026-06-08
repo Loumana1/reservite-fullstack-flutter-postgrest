@@ -51,6 +51,27 @@ begin
         raise exception 'Accès refusé sur ce restaurant';
     end if;
 
+    if save_service.service_id is not null and exists (
+        select 1
+        from reservations r
+                 join services s on s.id = save_service.service_id
+        where r.restaurant = s.restaurant
+          and r.status in ('pending', 'confirmed')
+
+          and extract(isodow from r.datetime)::int = s.day_of_week
+          and r.datetime::time >= s.start_time
+          and r.datetime::time <  s.end_time
+
+          and (
+            extract(isodow from r.datetime)::int <> save_service.day_of_week
+                or r.datetime::time <  save_service.start_time
+                or r.datetime::time >= save_service.end_time
+            )
+    ) then
+        raise exception
+            'Modification impossible : des réservations en attente ou confirmées seraient en dehors des horaires du service.';
+    end if;
+
     if save_service.service_id is null then
         insert into services (restaurant, day_of_week, start_time, end_time)
         values (save_service.restaurant_id, save_service.day_of_week,
@@ -87,14 +108,20 @@ begin
     end if;
     current_uid := auth.id()::integer;
 
-    delete from services
-    where id = delete_service.service_id
-      and exists(select 1 from restaurant_managers rm
-                 where rm.restaurant = services.restaurant
-                   and rm.manager = current_uid);
 
-    if not found then
-        raise exception 'Service non trouvé ou accès refusé';
+
+    if exists (
+        select 1
+        from reservations r
+                 join services s on s.id = delete_service.service_id
+        where r.restaurant = s.restaurant
+          and r.status in ('pending', 'confirmed')
+          and extract(isodow from r.datetime)::int = s.day_of_week
+          and r.datetime::time >= s.start_time
+          and r.datetime::time <  s.end_time
+    ) then
+        raise exception
+            'Impossible de supprimer ce service : des réservations non annulées utilisent ce service' ;
     end if;
 end;
 $$ language plpgsql security definer;
