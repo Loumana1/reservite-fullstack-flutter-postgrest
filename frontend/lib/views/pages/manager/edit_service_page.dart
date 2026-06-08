@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:prbd_2526_c06/core/Widgets/confirm_dialog.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/model/service.dart';
 import 'package:prbd_2526_c06/providers/restaurant_services_provider.dart';
@@ -89,34 +88,6 @@ class _EditServicePageState extends ConsumerState<EditServicePage> {
     }
   }
 
-  Future<void> _delete() async {
-    final service = widget.service;
-    if (service == null) return;
-
-    final ok = await showConfirmDialog(
-      context,
-      title: 'Supprimer le service',
-      message: 'Confirmer la suppression de ce service ?',
-      isDestructive: true,
-    );
-    if (!ok || !mounted) return;
-
-    setState(() => _submitting = true);
-    try {
-      await service.delete();
-      ref.invalidate(restaurantServicesProvider(widget.restaurantId));
-      if (mounted) Navigator.pop(context);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$e')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _submitting = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.service != null;
@@ -173,13 +144,6 @@ class _EditServicePageState extends ConsumerState<EditServicePage> {
                 ),
               ),
               const Spacer(),
-              if (isEdit)
-                OutlinedButton.icon(
-                  onPressed: _submitting ? null : _delete,
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  label: const Text('Supprimer', style: TextStyle(color: Colors.red)),
-                ),
-              if (isEdit) const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: _submitting ? null : _save,
                 child: _submitting

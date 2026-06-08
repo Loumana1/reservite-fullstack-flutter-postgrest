@@ -184,8 +184,6 @@ class Service {
         return 'jour $dayOfWeek';
     }
   }
-  static const _msgServiceLockedByReservations =
-      'Modification impossible : des réservations en attente ou confirmées seraient en dehors des services.' ;
   static String _saveErrorMessage(http.Response response, {required int dayOfWeek}) {
     final raw = ApiClient.errorMessage(response).toLowerCase();
 
@@ -200,11 +198,19 @@ class Service {
         raw.contains('br-4')) {
       return _msgReservationsOutside;
     }
-    if (raw.contains("non annulées")) {
-      return _msgServiceLockedByReservations;
-    }
 
-    return 'Modification imposible.';
+    return 'Modification impossible : des réservations en attente ou confirmées seraient en dehors des services' ;
+  }
+
+  static const cannotDeleteInUseMessage =
+      'Impossible de supprimer ce service : des réservations en attente ou confirmées l\'utilisent encore.';
+
+  static String _deleteErrorMessage(http.Response response) {
+    final raw = ApiClient.errorMessage(response).toLowerCase();
+    if (raw.contains('non annulées')) {
+      return cannotDeleteInUseMessage;
+    }
+    return 'Suppression impossible.';
   }
 
   bool coversReservation(Reservation reservation) {
@@ -218,7 +224,7 @@ class Service {
   Future<void> delete() async {
     final response = await ApiClient.post('delete_service', body: json.encode({'service_id': id}));
     if (response.statusCode != 204 && response.statusCode != 200) {
-      throw Exception(ApiClient.errorMessage(response));
+      throw Exception(_deleteErrorMessage(response));
     }
   }
 }
