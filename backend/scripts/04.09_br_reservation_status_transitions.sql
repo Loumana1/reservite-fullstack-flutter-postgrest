@@ -1,6 +1,14 @@
 create or replace function trg_check_reservation_status_transitions()
        returns trigger as $$
        begin
+
+           if tg_op = 'insert' then
+               if new.status != 'pending' then
+                   raise exception 'BR-9 : Une nouvelle réservation doit être créée avec le statut "en attente".';
+               end if;
+               return new;
+           end if;
+
         if old.status = new.status
         then
            return new;
