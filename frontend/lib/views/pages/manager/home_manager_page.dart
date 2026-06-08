@@ -17,6 +17,7 @@ class ManagerRestaurantsNotifier extends AsyncNotifier<List<Restaurant>> {
 
   @override
   Future<List<Restaurant>> build() {
+    ref.watch(securityProvider);
     return _fetch();
   }
 
