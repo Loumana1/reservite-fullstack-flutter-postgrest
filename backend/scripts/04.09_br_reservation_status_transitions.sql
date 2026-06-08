@@ -30,6 +30,6 @@ end ;
 $$ language plpgsql;
 
 create or replace trigger trigger_reservation_status_transitions
-before update on reservations
+before insert or update on reservations
 for each row execute function trg_check_reservation_status_transitions();
 
