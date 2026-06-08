@@ -5,6 +5,7 @@ import 'package:prbd_2526_c06/core/Widgets/confirm_dialog.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservation_tile.dart';
 import 'package:prbd_2526_c06/core/tools/service_time_picker.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
+import 'package:prbd_2526_c06/model/reservation.dart';
 import 'package:prbd_2526_c06/model/service.dart';
 import 'package:prbd_2526_c06/model/table.dart' as model;
 import 'package:prbd_2526_c06/providers/manager_reservations_provider.dart';
@@ -33,6 +34,29 @@ class RestaurantManagementReservationsPage extends ConsumerStatefulWidget {
 class _RestaurantManagementReservationsMockupScreenState
     extends ConsumerState<RestaurantManagementReservationsPage> {
   int _currentIndex = 0;
+  List<Reservation>? _activeReservations;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadActiveReservations();
+  }
+
+  Future<void> _loadActiveReservations() async {
+    final reservations = await Reservation.getAll(restaurantId: widget.restaurantId);
+    if (!mounted) return;
+    setState(() {
+      _activeReservations =
+          reservations.where((r) => r.status == 'pending' || r.status == 'confirmed').toList();
+    });
+  }
+
+
+  bool _isServiceDeletable(Service service) {
+    final reservations = _activeReservations;
+    if (reservations == null) return false;
+    return !reservations.any(service.coversReservation);
+  }
 
   void _openDetails(BuildContext context, int reservationId) {
     Navigator.push(
@@ -66,7 +90,7 @@ class _RestaurantManagementReservationsMockupScreenState
       context,
       title: 'Supprimer le service',
       message:
-          'Supprimer le service ${formatServiceTimeLabel(service.startTime)} - '
+          'Êtes vous sur de vouloir supprimer le service  de ${formatServiceTimeLabel(service.startTime)} - '
           '${formatServiceTimeLabel(service.endTime)} ?',
       isDestructive: true,
     );
@@ -106,6 +130,7 @@ class _RestaurantManagementReservationsMockupScreenState
         refreshManagerReservations(ref, widget.restaurantId);
       case 1:
         ref.invalidate(restaurantServicesProvider(widget.restaurantId));
+        _loadActiveReservations();
       case 2:
         ref.invalidate(restaurantTablesProvider(widget.restaurantId));
     }
@@ -218,6 +243,7 @@ class _RestaurantManagementReservationsMockupScreenState
                   services: byDay[day] ?? const [],
                   onEdit: (s) => _openEditService(context, s),
                   onDelete: (s) => _deleteService(context, s),
+                  isDeletable: _isServiceDeletable,
                 ),
             ],
           );
@@ -315,12 +341,14 @@ class _ServiceDayCard extends StatelessWidget {
     required this.services,
     required this.onEdit,
     required this.onDelete,
+    required this.isDeletable,
   });
 
   final int dayOfWeek;
   final List<Service> services;
   final void Function(Service service) onEdit;
   final void Function(Service service) onDelete;
+  final bool Function(Service service) isDeletable;
 
   @override
   Widget build(BuildContext context) {
@@ -366,9 +394,14 @@ class _ServiceDayCard extends StatelessWidget {
                     onPressed: () => onEdit(s),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    tooltip: 'Supprimer le service',
-                    onPressed: () => onDelete(s),
+                    icon: Icon(
+                      Icons.delete,
+                      color: isDeletable(s) ? Colors.red : Colors.grey,
+                    ),
+                    tooltip: isDeletable(s)
+                        ? 'Supprimer le service'
+                        : Service.cannotDeleteInUseMessage,
+                    onPressed: isDeletable(s) ? () => onDelete(s) : null,
                   ),
                 ],
               ),

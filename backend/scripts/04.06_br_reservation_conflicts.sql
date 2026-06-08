@@ -16,7 +16,7 @@ create or replace function trg_check_table_conflict()
         current_datetime := NEW.datetime;
         -- en cours ou cancelled ?
         if current_status not in ('confirmed', 'completed') then
-           return null;
+           return new;
         END IF;
 
         current_service_id := get_service_for_reservation(NEW.restaurant, current_datetime);
@@ -40,7 +40,7 @@ create or replace function trg_check_table_conflict()
         from reservations
         where id = res_id;
         if current_status not in ('confirmed', 'completed') then
-            RETURN NULL;
+            RETURN new;
         END IF;
 
         current_service_id := get_service_for_reservation((SELECT restaurant FROM reservations WHERE id = res_id), current_datetime);
@@ -59,20 +59,20 @@ create or replace function trg_check_table_conflict()
         RAISE EXCEPTION 'BR-6 : La table est déjà réservée  à cette date.';
     END IF;
 
-    RETURN NULL;
+    RETURN new;
 END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS br_06_table_conflict_res ON reservations;
 
-CREATE CONSTRAINT TRIGGER br_06_table_conflict_res
-    AFTER INSERT OR UPDATE ON reservations
-    DEFERRABLE INITIALLY DEFERRED
+CREATE or replace TRIGGER br_06_table_conflict_res
+   before insert OR UPDATE ON reservations
+
     FOR EACH ROW EXECUTE FUNCTION trg_check_table_conflict();
 
 DROP TRIGGER IF EXISTS br_06_table_conflict_rt ON reservation_tables;
 
-CREATE CONSTRAINT TRIGGER br_06_table_conflict_rt
-    AFTER INSERT OR UPDATE ON reservation_tables
-    DEFERRABLE INITIALLY DEFERRED
+CREATE or replace TRIGGER br_06_table_conflict_rt
+    before insert OR UPDATE ON reservation_tables
+
     FOR EACH ROW EXECUTE FUNCTION trg_check_table_conflict();

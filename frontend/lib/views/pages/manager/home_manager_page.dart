@@ -17,6 +17,7 @@ class ManagerRestaurantsNotifier extends AsyncNotifier<List<Restaurant>> {
 
   @override
   Future<List<Restaurant>> build() {
+    ref.watch(securityProvider);
     return _fetch();
   }
 
@@ -176,25 +177,27 @@ class HomeManagerPage extends ConsumerWidget {
                             ],
                           ),
                         ],
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.pending,
-                              size: 14,
-                              color: Colors.orange,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '$pending demande${pending > 1 ? 's' : ''} en attente',
-                              style: const TextStyle(
-                                fontSize: 12,
+                        if (pending > 0) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.pending,
+                                size: 14,
                                 color: Colors.orange,
-                                fontWeight: FontWeight.w500,
                               ),
-                            ),
-                          ],
-                        ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$pending demande${pending > 1 ? 's' : ''} en attente',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.orange,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ]
                       ],
                     ),
                     trailing: const Icon(Icons.chevron_right),

@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prbd_2526_c06/model/reservation.dart';
+import 'package:prbd_2526_c06/providers/security_provider.dart';
+import 'package:prbd_2526_c06/views/pages/manager/home_manager_page.dart'
+    show managerRestaurantsProvider;
 
 
 final managerReservationsProvider =
@@ -17,7 +20,10 @@ class ManagerReservationsNotifier extends AsyncNotifier<List<Reservation>> {
   String get statusFilter => _statusFilter;
 
   @override
-  Future<List<Reservation>> build() => _load();
+  Future<List<Reservation>> build() {
+    ref.watch(securityProvider);
+    return _load();
+  }
 
   Future<List<Reservation>> _load() {
     return Reservation.getAll(
@@ -83,4 +89,5 @@ class ManagerReservationsNotifier extends AsyncNotifier<List<Reservation>> {
 
 void refreshManagerReservations(WidgetRef ref, int restaurantId) {
   ref.read(managerReservationsProvider(restaurantId).notifier).refresh();
+  ref.invalidate(managerRestaurantsProvider);
 }

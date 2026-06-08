@@ -39,7 +39,7 @@ returns trigger as $$
             end if;
         return  null ;
     end;
-    $$language  plpgsql;
+    $$language  plpgsql security definer ;
 
 
 drop trigger if exists trigger_check_capacity on reservation_tables;

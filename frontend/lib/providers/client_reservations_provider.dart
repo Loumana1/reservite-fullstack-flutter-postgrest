@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prbd_2526_c06/model/reservation.dart';
+import 'package:prbd_2526_c06/providers/security_provider.dart';
 
 final clientReservationsProvider =
 AsyncNotifierProvider<ClientReservationsNotifier, List<Reservation>>(
@@ -12,7 +13,10 @@ class ClientReservationsNotifier extends AsyncNotifier<List<Reservation>> {
   String get statusFilter => _statusFilter;
 
   @override
-  Future<List<Reservation>> build() => Reservation.getAll(statusFilter: _statusFilter);
+  Future<List<Reservation>> build() {
+    ref.watch(securityProvider);
+    return Reservation.getAll(statusFilter: _statusFilter);
+  }
 
   Future<void> setStatusFilter(String? status) async {
     _statusFilter = status ?? 'all';

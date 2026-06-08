@@ -24,6 +24,7 @@ create type reservation_info as
     restaurant_city  varchar,
     client_full_name varchar,
     client_email     varchar,
+    client_phone     varchar,
     assigned_tables  table_info[]
 );
 
@@ -42,7 +43,7 @@ begin
     select res.id, res.client, res.restaurant, res.datetime, res.number_of_guests,
            res.status::varchar, res.special_requests,
            rest.name, rest.city,
-           u.full_name, u.email,
+           u.full_name, u.email,u.phone,
            coalesce((
                select array_agg(
                           (t.id, t.restaurant, t.table_number, t.capacity)::table_info
@@ -93,7 +94,7 @@ begin
         select res.id, res.client, res.restaurant, res.datetime, res.number_of_guests,
                res.status::varchar, res.special_requests,
                rest.name, rest.city,
-               u.full_name, u.email,
+               u.full_name, u.email,u.phone,
                coalesce((
                    select array_agg(
                               (t.id, t.restaurant, t.table_number, t.capacity)::table_info
@@ -114,7 +115,7 @@ begin
         select res.id, res.client, res.restaurant, res.datetime, res.number_of_guests,
                res.status::varchar, res.special_requests,
                rest.name, rest.city,
-               u.full_name, u.email,
+               u.full_name, u.email,u.phone,
                coalesce((
                    select array_agg(
                               (t.id, t.restaurant, t.table_number, t.capacity)::table_info

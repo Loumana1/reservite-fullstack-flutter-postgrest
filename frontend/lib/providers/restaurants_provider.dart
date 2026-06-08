@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
+import 'package:prbd_2526_c06/providers/security_provider.dart';
 
 final restaurantSearchFilterProvider = StateProvider<String>((ref) => '');
 
@@ -12,6 +13,7 @@ final restaurantsProvider =
 class RestaurantsNotifier extends AsyncNotifier<List<Restaurant>> {
   @override
   Future<List<Restaurant>> build() async {
+    ref.watch(securityProvider);
     final filter = ref.watch(restaurantSearchFilterProvider);
     return Restaurant.getAll(searchFilter: filter.isEmpty ? null : filter);
   }

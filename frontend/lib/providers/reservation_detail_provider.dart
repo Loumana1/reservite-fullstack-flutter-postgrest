@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prbd_2526_c06/model/reservation.dart';
 import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/providers/client_reservations_provider.dart';
+import 'package:prbd_2526_c06/providers/restaurants_provider.dart';
 
 class ReservationDetailState {
   const ReservationDetailState({
@@ -39,11 +40,13 @@ Future<Reservation> cancelReservationDetail(
   final reservation = await Reservation.getById(reservationId);
   final updated = await reservation.cancel();
   final listNotifier = ref.read(clientReservationsProvider.notifier);
-  if (listNotifier.statusFilter == 'pending' && updated.status == 'cancelled') {
+  final filter = listNotifier.statusFilter;
+  if (filter != 'all' && updated.status != filter ) {
     listNotifier.removeReservation(reservationId);
   } else {
     listNotifier.patchReservation(updated);
   }
   ref.invalidate(reservationDetailProvider(reservationId));
+  ref.invalidate(restaurantsProvider);
   return updated;
 }

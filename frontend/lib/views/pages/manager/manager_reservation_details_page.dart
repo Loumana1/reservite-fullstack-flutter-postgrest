@@ -114,6 +114,9 @@ class _ManagerReservationBody extends ConsumerWidget {
                   Icons.email,
                   'Email: ${r.clientEmail ?? 'Non renseigné'}',
                 ),
+                const SizedBox(height: 8),
+                _InfoRow(Icons.phone, 'Téléphone: ${r.clientPhone
+                    ?? 'Non renseigné'}'),
               ],
             ),
             const SizedBox(height: 16),
