@@ -40,7 +40,8 @@ Future<Reservation> cancelReservationDetail(
   final reservation = await Reservation.getById(reservationId);
   final updated = await reservation.cancel();
   final listNotifier = ref.read(clientReservationsProvider.notifier);
-  if (listNotifier.statusFilter == 'pending' && updated.status == 'cancelled') {
+  final filter = listNotifier.statusFilter;
+  if (filter != 'all' && updated.status != filter ) {
     listNotifier.removeReservation(reservationId);
   } else {
     listNotifier.patchReservation(updated);
