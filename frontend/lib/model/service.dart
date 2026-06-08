@@ -184,7 +184,8 @@ class Service {
         return 'jour $dayOfWeek';
     }
   }
-
+  static const _msgServiceLockedByReservations =
+      'Modification impossible : des réservations en attente ou confirmées seraient en dehors des services.' ;
   static String _saveErrorMessage(http.Response response, {required int dayOfWeek}) {
     final raw = ApiClient.errorMessage(response).toLowerCase();
 
@@ -199,8 +200,19 @@ class Service {
         raw.contains('br-4')) {
       return _msgReservationsOutside;
     }
+    if (raw.contains("non annulées")) {
+      return _msgServiceLockedByReservations;
+    }
 
-    return 'Ce service chevauche avec un service existant le ${_dayName(dayOfWeek)}.';
+    return 'Modification imposible.';
+  }
+
+  bool coversReservation(Reservation reservation) {
+    if (reservation.status != 'pending' && reservation.status != 'confirmed') {
+      return false;
+    }
+    return reservation.datetime.weekday == dayOfWeek &&
+        _timeInRange(reservation.datetime, startTime, endTime);
   }
 
   Future<void> delete() async {
