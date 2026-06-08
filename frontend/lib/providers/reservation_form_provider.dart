@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prbd_2526_c06/model/reservation.dart';
 import 'package:prbd_2526_c06/model/slot.dart';
 import 'package:prbd_2526_c06/providers/client_reservations_provider.dart';
+import 'package:prbd_2526_c06/providers/restaurants_provider.dart';
 import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 
 class ReservationFormState {
@@ -220,9 +221,11 @@ class ReservationFormNotifier extends Notifier<ReservationFormState> {
       ref
           .read(clientReservationsProvider.notifier)
           .patchReservation(reservation);
+      ref.invalidate(restaurantsProvider);
       return reservation;
     } catch (_) {
       return null;
     }
+
   }
 }
