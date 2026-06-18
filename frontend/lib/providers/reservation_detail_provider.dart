@@ -21,9 +21,11 @@ final reservationDetailProvider =
     final reservation = await Reservation.getById(reservationId);
     if (reservation == null) return null;
 
+    final restaurant = await Restaurant.getById(reservation.restaurantId);
+
     return ReservationDetailState(
       reservation: reservation,
-      restaurant: null,
+      restaurant: restaurant,
     );
   },
 );
