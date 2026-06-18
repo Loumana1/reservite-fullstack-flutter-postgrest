@@ -123,6 +123,9 @@ begin
         raise exception
             'Impossible de supprimer ce service : des réservations non annulées utilisent ce service' ;
     end if;
+
+    delete from services where id = service_id ;
+
 end;
 $$ language plpgsql security definer;
 
