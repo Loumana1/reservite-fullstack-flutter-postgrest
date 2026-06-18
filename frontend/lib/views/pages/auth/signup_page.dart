@@ -225,6 +225,12 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
+                  onChanged: (v) => setState(() {
+                    _passwordError = User.validatePassword(v);
+                    _confirmError = _confirmController.text.isEmpty
+                        && v != _confirmController.text
+                        ? 'Les mots de passe en correspondent pas' : null ;
+                  }),
                   decoration: InputDecoration(
                     labelText: 'Mot de passe',
                     errorText: _passwordError,
@@ -236,6 +242,10 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _confirmController,
+                  onChanged: (v) => setState(() {
+                    _confirmError = v != _passwordController.text
+                        ? 'Les mots de pass ne correspondent pas' : null ;
+                  }),
                   decoration: InputDecoration(
                     labelText: 'Confirmer le mot de passe',
                     errorText: _confirmError,
