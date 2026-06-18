@@ -80,6 +80,35 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         const SnackBar(content: Text('Base reinitialisee !')),
       );
     }
+  Future<void> _confirmResetDatabase() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Réinitialiser la base de données'),
+        content: const Text(
+            'Voulez-vous continuer?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Réinitialiser'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _resetDatabase();
+    }
+  }
 
     @override
     Widget build(BuildContext context) {
@@ -258,7 +287,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
-                        onPressed: _resetDatabase,
+                        onPressed: _confirmResetDatabase,
                         icon: const Icon(Icons.refresh),
                         label: const Text('Réinitialiser la base de données'),
                         style: OutlinedButton.styleFrom(
