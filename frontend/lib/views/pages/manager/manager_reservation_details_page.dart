@@ -43,7 +43,7 @@ class ManagerReservationDetailsPage extends ConsumerWidget {
         onRefresh: () async {
           await ref.read(simulatedTimeProvider.notifier).refresh();
           refreshManagerReservationDetail(ref, _params);
-          refreshManagerReservations(ref, restaurantId);
+          refreshManagerReservationsFromServer(ref, restaurantId);
         },
       ),
       body: detailAsync.when(
@@ -64,11 +64,8 @@ class ManagerReservationDetailsPage extends ConsumerWidget {
           }
           return _ManagerReservationBody(
             detail: detail,
+            params: _params,
             returnTab: returnTab,
-            onChanged: () {
-              refreshManagerReservationDetail(ref, _params);
-              refreshManagerReservations(ref, restaurantId);
-            },
           );
         },
       ),
@@ -78,14 +75,17 @@ class ManagerReservationDetailsPage extends ConsumerWidget {
 
 class _ManagerReservationBody extends ConsumerWidget {
   const _ManagerReservationBody({
+
     required this.detail,
     required this.returnTab,
-    required this.onChanged,
+
+    required this.params,
+x
   });
 
   final ManagerReservationDetail detail;
   final int returnTab;
-  final VoidCallback onChanged;
+  final ManagerReservationDetailParams params;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -243,12 +243,12 @@ class _ManagerReservationBody extends ConsumerWidget {
             context,
             MaterialPageRoute(
               builder: (_) => AssignTablesPage(
-                reservationId: r.id,
+                reservation: r,
                 restaurantId: r.restaurantId,
                 returnTab: returnTab,
               ),
             ),
-          ).then((_) => onChanged()),
+          ),
           icon: const Icon(Icons.table_restaurant),
           label: const Text('Confirmer'),
         ),
@@ -277,10 +277,10 @@ class _ManagerReservationBody extends ConsumerWidget {
     if (!ok || !context.mounted) return;
 
     try {
-      await ref
-          .read(managerReservationsProvider(r.restaurantId).notifier)
-          .cancel(r);
-      onChanged();
+      final updated = await ref.read(managerReservationsProvider(r.restaurantId).notifier).cancel(r);
+      syncAfterManagerReservationChange(ref, r.restaurantId, updated, before: r);
+      ref.read(managerReservationDetailProvider(params).notifier).patchDetail(updated);
+
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Réservation annulée')),
@@ -304,10 +304,11 @@ class _ManagerReservationBody extends ConsumerWidget {
     if (!ok || !context.mounted) return;
 
     try {
-      await ref
-          .read(managerReservationsProvider(r.restaurantId).notifier)
-          .complete(r);
-      onChanged();
+
+      final updated = await ref.read(managerReservationsProvider(r.restaurantId).notifier).complete(r);
+      syncAfterManagerReservationChange(ref, r.restaurantId, updated, before: r);
+      ref.read(managerReservationDetailProvider(params).notifier).patchDetail(updated);
+
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Réservation terminée')),

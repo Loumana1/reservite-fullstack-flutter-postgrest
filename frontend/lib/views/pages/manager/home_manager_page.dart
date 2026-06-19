@@ -6,30 +6,9 @@ import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
 import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 import 'package:prbd_2526_c06/views/pages/manager/restaurant_management_reservations_page.dart';
+import 'package:prbd_2526_c06/providers/manager_restaurants_provider.dart';
 
-final managerRestaurantsProvider =
-    AsyncNotifierProvider<ManagerRestaurantsNotifier, List<Restaurant>>(
-  ManagerRestaurantsNotifier.new,
-);
 
-class ManagerRestaurantsNotifier extends AsyncNotifier<List<Restaurant>> {
-  static const _loadTimeout = Duration(seconds: 12);
-
-  @override
-  Future<List<Restaurant>> build() {
-    ref.watch(securityProvider);
-    return _fetch();
-  }
-
-  Future<void> refresh() async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(_fetch);
-  }
-
-  Future<List<Restaurant>> _fetch() {
-    return Restaurant.getAll().timeout(_loadTimeout);
-  }
-}
 
 class HomeManagerPage extends ConsumerWidget {
   const HomeManagerPage({super.key});
