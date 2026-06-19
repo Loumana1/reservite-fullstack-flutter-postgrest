@@ -9,6 +9,8 @@ import 'package:prbd_2526_c06/providers/restaurants_provider.dart';
 import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 import 'package:prbd_2526_c06/views/pages/client/restaurant_details_page.dart';
 
+import '../../../core/app_config.dart';
+
 class SearchRestaurantsPage extends ConsumerStatefulWidget {
   const SearchRestaurantsPage({super.key});
 
@@ -33,7 +35,7 @@ class _SearchRestaurantsPageState extends ConsumerState<SearchRestaurantsPage> {
 
   void _onSearchChanged() {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), () {
+    _debounce = Timer(AppConfig.searchDebounce, () {
       ref.read(restaurantSearchFilterProvider.notifier).state =
           _searchController.text.trim();
     });
@@ -76,9 +78,6 @@ class _SearchRestaurantsPageState extends ConsumerState<SearchRestaurantsPage> {
                   prefixIcon: Icon(Icons.search),
                   border: OutlineInputBorder(),
                 ),
-                onChanged: (value) =>
-                    ref.read(restaurantSearchFilterProvider.notifier).state =
-                        value,
               ),
             ),
             Expanded(
@@ -87,6 +86,10 @@ class _SearchRestaurantsPageState extends ConsumerState<SearchRestaurantsPage> {
                     const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(child: Text('Erreur : $e')),
                 data: (list) {
+                  final hasMore = list.length > AppConfig.maxSearchResults;
+                  final visible = hasMore
+                      ? list.sublist(0, AppConfig.maxSearchResults)
+                      : list;
                   if (list.isEmpty) {
                     return const Center(
                       child: Padding(
@@ -101,7 +104,7 @@ class _SearchRestaurantsPageState extends ConsumerState<SearchRestaurantsPage> {
 
                   return Column(
                     children: [
-                      if (list.length >= Restaurant.maxSearchResults)
+                      if (list.length >= AppConfig.maxSearchResults )
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
@@ -134,12 +137,12 @@ class _SearchRestaurantsPageState extends ConsumerState<SearchRestaurantsPage> {
                       Expanded(
                         child: ListView.builder(
                           padding: const EdgeInsets.all(16),
-                          itemCount: list.length,
+                          itemCount: visible.length,
                           itemBuilder: (context, index) {
-                            final r = list[index];
+                            final r = visible[index];
                             return Card(
                               margin: EdgeInsets.only(
-                                bottom: index < list.length - 1 ? 8 : 0,
+                                bottom: index < visible.length - 1 ? 8 : 0,
                               ),
                               child: ListTile(
                                 leading: const Icon(Icons.restaurant, size: 40),

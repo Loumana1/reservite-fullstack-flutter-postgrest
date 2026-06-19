@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../core/app_config.dart';
 import '../core/services/api_client.dart';
 
 class Restaurant {
@@ -52,7 +53,7 @@ class Restaurant {
   static Future<List<Restaurant>> getAll({String? searchFilter}) async {
     final r = await ApiClient.post('get_restaurants', body: json.encode({
       'search_filter': ?searchFilter,
-      'limit_count': maxSearchResults,
+      'limit_count': AppConfig.maxSearchResults,
     }));
     if (r.statusCode != 200) throw Exception('Failed to load restaurants');
     final List<dynamic> body = json.decode(r.body);

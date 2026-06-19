@@ -49,6 +49,7 @@ begin
         where filter_text is null
            or r.name ilike '%' || filter_text || '%'
            or r.city ilike '%' || filter_text || '%'
+           or r.description ilike '%' || filter_text || '%'
         order by r.name
         limit limit_count + 1;
     else
