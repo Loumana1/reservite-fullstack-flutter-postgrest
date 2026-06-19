@@ -16,41 +16,55 @@ class ReservationDetailState {
 }
 
 final reservationDetailProvider =
-    FutureProvider.family<ReservationDetailState?, int>(
-  (ref, reservationId) async {
-    final reservation = await Reservation.getById(reservationId);
-    if (reservation == null) return null;
-
-    final restaurant = await Restaurant.getById(reservation.restaurantId);
-
-    return ReservationDetailState(
-      reservation: reservation,
-      restaurant: restaurant,
-    );
-  },
+AsyncNotifierProvider.family<ReservationDetailNotifier, ReservationDetailState?, int>(
+  ReservationDetailNotifier.new,
 );
 
+class ReservationDetailNotifier extends AsyncNotifier<ReservationDetailState?> {
+  ReservationDetailNotifier(this.reservationId);
+  final int reservationId;
+  @override
+  Future<ReservationDetailState?> build() async {
+    final reservation = await Reservation.getById(reservationId);
+    final restaurant = await Restaurant.getById(reservation.restaurantId);
+    return ReservationDetailState(reservation: reservation, restaurant: restaurant);
+  }
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(build);
+  }
+  void patchDetail(Reservation updated) {
+    final current = state.value;
+    if (current == null) return;
+    state = AsyncData(ReservationDetailState(
+      reservation: updated,
+      restaurant: current.restaurant,
+    ));
+  }
+}
+
+
 void refreshReservationDetail(WidgetRef ref, int reservationId) {
-  ref.invalidate(reservationDetailProvider(reservationId));
+  ref.read(reservationDetailProvider(reservationId).notifier).refresh();
 }
 
 
 Future<Reservation> cancelReservationDetail(
   WidgetRef ref,
-  int reservationId,
+  Reservation reservation,
 ) async {
-  final reservation = await Reservation.getById(reservationId);
   final updated = await reservation.cancel();
   final listNotifier = ref.read(clientReservationsProvider.notifier);
   final filter = listNotifier.statusFilter;
   if (filter != 'all' && updated.status != filter ) {
-    listNotifier.removeReservation(reservationId);
+    listNotifier.removeReservation(reservation.id);
   } else {
     listNotifier.patchReservation(updated);
   }
-  ref.invalidate(reservationDetailProvider(reservationId));
   ref.read(restaurantsProvider.notifier).syncCardAfterReservationCancelled(
     before: reservation,
   );
+  ref.read(reservationDetailProvider(reservation.id).notifier).patchDetail(updated);
+
   return updated;
 }

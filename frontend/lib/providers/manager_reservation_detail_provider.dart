@@ -35,24 +35,52 @@ class ManagerReservationDetail {
   final DateTime simulatedTime;
 }
 
-final managerReservationDetailProvider = FutureProvider.family<
-    ManagerReservationDetail?, ManagerReservationDetailParams>(
-  (ref, params) async {
+final managerReservationDetailProvider = AsyncNotifierProvider.family<
+    ManagerReservationDetailNotifier, ManagerReservationDetail?,
+    ManagerReservationDetailParams>(
+  ManagerReservationDetailNotifier.new,
+);
+
+class ManagerReservationDetailNotifier
+    extends AsyncNotifier<ManagerReservationDetail?> {
+  ManagerReservationDetailNotifier(this.params);
+
+  final ManagerReservationDetailParams params;
+
+  @override
+  Future<ManagerReservationDetail?> build() async {
     final reservation = await Reservation.getById(params.reservationId);
     final services = await Service.getByRestaurant(params.restaurantId);
-    final simulatedTime =
-        await ref.watch(simulatedTimeProvider.future);
-    return ManagerReservationDetail(
+
+    final simulatedTime = await ref.watch(simulatedTimeProvider.future);
+     return ManagerReservationDetail(
       reservation: reservation,
       services: services,
       simulatedTime: simulatedTime,
     );
-  },
-);
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(build);
+  }
+
+  void patchDetail(Reservation updated) {
+    final current = state.value;
+    if (current == null) return;
+
+    state = AsyncData(ManagerReservationDetail(
+      reservation: updated,
+        services: current.services,
+      simulatedTime: current.simulatedTime,
+    ));
+  }
+}
 
 void refreshManagerReservationDetail(
   WidgetRef ref,
   ManagerReservationDetailParams params,
 ) {
-  ref.invalidate(managerReservationDetailProvider(params));
+  ref.read(managerReservationDetailProvider(params).notifier).refresh();
+
 }
