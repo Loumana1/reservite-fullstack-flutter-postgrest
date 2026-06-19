@@ -27,8 +27,8 @@ class RestaurantsNotifier extends AsyncNotifier<List<Restaurant>> {
       searchFilter: filter.isEmpty ? null : filter,
     ));
   }
-  void patchRestaurantCard({
-    required int restaurantId,
+
+  void _patch( int restaurantId,{
     required DateTime? lastReservationDate,
     required int pendingRequests,
   }) {
@@ -36,24 +36,16 @@ class RestaurantsNotifier extends AsyncNotifier<List<Restaurant>> {
     if (list == null) return;
     state = AsyncData([
       for (final r in list)
-        if (r.id == restaurantId)
-          Restaurant(
-            id: r.id,
-            name: r.name,
-            address: r.address,
-            city: r.city,
-            phone: r.phone,
-            description: r.description,
-            rating: r.rating,
-            priceRange: r.priceRange,
-            slotDuration: r.slotDuration,
-            lastReservationDate: lastReservationDate,
-            pendingRequests: pendingRequests,
-          )
-        else
-          r,
+        r.id == restaurantId
+            ? r.copyWith(
+          lastReservationDate: lastReservationDate,
+          pendingRequests: pendingRequests,
+        )
+            : r,
     ]);
   }
+
+
 
   void syncCardAfterReservationSaved({
     required Reservation reservation,
@@ -62,23 +54,16 @@ class RestaurantsNotifier extends AsyncNotifier<List<Restaurant>> {
     final card = _cardFor(reservation.restaurantId);
     if (card == null) return;
 
-    var pending = card.pendingRequests ?? 0;
-    if (isCreate && reservation.status == 'pending') {
-      pending++;
-    } else if (!isCreate && reservation.status == 'pending') {
-      pending++;
-    }
-
-    final oldLast = card.lastReservationDate;
-    final newLast = oldLast == null || reservation.datetime.isAfter(oldLast)
+    final pending = reservation.status == 'pending'
+        ? (card.pendingRequests ?? 0) + 1
+        : card.pendingRequests ?? 0;
+    final lastReservationDate = card.lastReservationDate == null ||
+        reservation.datetime.isAfter(card.lastReservationDate!)
         ? reservation.datetime
-        : oldLast;
+        : card.lastReservationDate;
 
-    patchRestaurantCard(
-      restaurantId: reservation.restaurantId,
-      lastReservationDate: newLast,
-      pendingRequests: pending,
-    );
+    _patch(reservation.restaurantId,
+        lastReservationDate: lastReservationDate, pendingRequests: pending);
   }
 
 
@@ -86,16 +71,12 @@ class RestaurantsNotifier extends AsyncNotifier<List<Restaurant>> {
     final card = _cardFor(before.restaurantId);
     if (card == null) return;
 
-    var pending = card.pendingRequests ?? 0;
-    if (before.status == 'pending' && pending > 0) {
-      pending--;
-    }
+    final pending = before.status == 'pending' && (card.pendingRequests ?? 0) > 0
+        ? card.pendingRequests! - 1
+        : card.pendingRequests ?? 0;
 
-    patchRestaurantCard(
-      restaurantId: before.restaurantId,
-      lastReservationDate: card.lastReservationDate,
-      pendingRequests: pending,
-    );
+    _patch(before.restaurantId,
+        lastReservationDate: card.lastReservationDate, pendingRequests: pending);
   }
 
   Restaurant? _cardFor(int restaurantId) {

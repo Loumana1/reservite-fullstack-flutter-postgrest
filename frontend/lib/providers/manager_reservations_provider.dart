@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prbd_2526_c06/model/reservation.dart';
 import 'package:prbd_2526_c06/providers/security_provider.dart';
-import 'package:prbd_2526_c06/views/pages/manager/home_manager_page.dart'
-    show managerRestaurantsProvider;
+import 'package:prbd_2526_c06/providers/manager_restaurants_provider.dart';
+
 
 
 final managerReservationsProvider =
@@ -59,27 +59,20 @@ class ManagerReservationsNotifier extends AsyncNotifier<List<Reservation>> {
   }
 
 
-  Future<void> cancel(Reservation r) async {
-    try {
-      patchReservation(await r.cancel());
-    } catch (e, st) {
-      state = AsyncError(e, st);
-      rethrow;
-    }
-  }
+  Future<Reservation> cancel(Reservation r) => _mutate(r.cancel());
 
-  Future<void> complete(Reservation r) async {
-    try {
-      patchReservation(await r.complete());
-    } catch (e, st) {
-      state = AsyncError(e, st);
-      rethrow;
-    }
-  }
 
-  Future<void> confirm(Reservation r, List<int> tableIds) async {
+  Future<Reservation> complete(Reservation r)  => _mutate(r.complete());
+
+
+  Future<Reservation> confirm(Reservation r, List<int> tableIds)=>
+      _mutate(r.confirm(tableIds));
+
+  Future<Reservation> _mutate(Future<Reservation> action) async {
     try {
-      patchReservation(await r.confirm(tableIds));
+      final updated = await action;
+      patchReservation(updated);
+      return updated;
     } catch (e, st) {
       state = AsyncError(e, st);
       rethrow;
@@ -87,7 +80,29 @@ class ManagerReservationsNotifier extends AsyncNotifier<List<Reservation>> {
   }
 }
 
-void refreshManagerReservations(WidgetRef ref, int restaurantId) {
+
+
+void syncAfterManagerReservationChange(
+    WidgetRef ref,
+    int restaurantId,
+    Reservation updated, {
+      Reservation? before,
+    }) {
+  final listNotifier = ref.read(managerReservationsProvider(restaurantId).notifier);
+  if (listNotifier.statusFilter != 'all' &&
+      updated.status != listNotifier.statusFilter) {
+    listNotifier.removeReservation(updated.id);
+  }
+
+  ref.read(managerRestaurantsProvider.notifier).syncAfterReservationChange(
+    restaurantId: restaurantId,
+    updated: updated,
+    before: before,
+  );
+}
+
+
+void refreshManagerReservationsFromServer(WidgetRef ref, int restaurantId) {
   ref.read(managerReservationsProvider(restaurantId).notifier).refresh();
-  ref.invalidate(managerRestaurantsProvider);
+  ref.read(managerRestaurantsProvider.notifier).refresh();
 }
