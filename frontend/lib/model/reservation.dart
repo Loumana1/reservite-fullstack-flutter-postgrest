@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:http/http.dart' as http;
+
 import '../core/services/api_client.dart';
 import 'table.dart' as model;
 
@@ -92,28 +94,53 @@ class Reservation {
         'special_requests': specialRequests,
       'reservation_id': ?reservationId,
     }));
-    if (r.statusCode != 200) throw Exception(r.body);
+    if (r.statusCode != 200) throw Exception(_errorMessage(r));
     return Reservation.fromJson(json.decode(r.body));
   }
 
   Future<Reservation> cancel() async {
     final r = await ApiClient.post('cancel_reservation',
         body: json.encode({'reservation_id': id}));
-    if (r.statusCode != 200) throw Exception(r.body);
+    if (r.statusCode != 200) throw Exception(_errorMessage(r));
     return Reservation.fromJson(json.decode(r.body));
   }
 
   Future<Reservation> confirm(List<int> tableIds) async {
     final r = await ApiClient.post('confirm_reservation',
         body: json.encode({'reservation_id': id, 'table_ids': tableIds}));
-    if (r.statusCode != 200) throw Exception(r.body);
+    if (r.statusCode != 200) throw Exception(_errorMessage(r));
     return Reservation.fromJson(json.decode(r.body));
   }
 
   Future<Reservation> complete() async {
     final r = await ApiClient.post('complete_reservation',
         body: json.encode({'reservation_id': id}));
-    if (r.statusCode != 200) throw Exception(r.body);
+    if (r.statusCode != 200) throw Exception(_errorMessage(r));
     return Reservation.fromJson(json.decode(r.body));
+  }
+
+  static String _errorMessage(http.Response response) {
+    final raw = ApiClient.errorMessage(response).toLowerCase();
+    
+    if (raw.contains('br-4') || raw.contains('horaire')) {
+      return 'Modification impossible : en dehors des horaires du service.';
+    }
+    if (raw.contains('br-9') || raw.contains('statut')) {
+      return 'Changement de statut invalide.';
+    }
+    if (raw.contains('br-12') || raw.contains('conflit') || raw.contains('conflict')) {
+      return 'Conflit : une des tables est déjà réservée pour ce créneau.';
+    }
+    if (raw.contains('br-6') || raw.contains('br-2') || raw.contains('capacité') || raw.contains('capacity')) {
+      return 'Capacité insuffisante pour le nombre de convives.';
+    }
+    if (raw.contains('permission denied') || raw.contains('accès refusé') || raw.contains('access denied')) {
+      return 'Accès refusé.';
+    }
+    if (raw.contains('non trouvée') || raw.contains('not found')) {
+      return 'Réservation introuvable.';
+    }
+    
+    return 'Une erreur est survenue lors de l\'enregistrement de la réservation.';
   }
 }

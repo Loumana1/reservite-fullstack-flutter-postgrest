@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:http/http.dart' as http;
+
 import '../core/services/api_client.dart';
 
 class Table {
@@ -42,6 +44,22 @@ class Table {
     if (response.statusCode == 200) {
       return Table.fromJson(json.decode(response.body));
     }
-    throw Exception('Failed to save table');
+    throw Exception(_errorMessage(response));
+  }
+
+  static String _errorMessage(http.Response response) {
+    final raw = ApiClient.errorMessage(response).toLowerCase();
+    
+    if (raw.contains('br-2') || raw.contains('capacité') || raw.contains('capacity')) {
+      return 'Impossible de réduire la capacité : des réservations confirmées l\'utilisent déjà.';
+    }
+    if (raw.contains('unique') || raw.contains('table_number')) {
+      return 'Ce numéro de table existe déjà dans ce restaurant.';
+    }
+    if (raw.contains('permission denied') || raw.contains('accès refusé')) {
+      return 'Accès refusé.';
+    }
+    
+    return 'Erreur lors de la sauvegarde de la table.';
   }
 }

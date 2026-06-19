@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:http/http.dart' as http;
 import 'package:prbd_2526_c06/core/services/api_client.dart';
 
 class Security {
@@ -11,7 +12,7 @@ class Security {
       anonymous: true,
     );
     if (response.statusCode != 200) {
-      throw Exception(ApiClient.errorMessage(response));
+      throw Exception(_errorMessage(response));
     }
     final token = json.decode(response.body)['token'];
     if (token == null || token.toString().isEmpty) {
@@ -26,7 +27,7 @@ class Security {
       anonymous: true
     );
     if (response.statusCode != 204) {
-      throw Exception(ApiClient.errorMessage(response));
+      throw Exception(_errorMessage(response));
     }
   }
 
@@ -61,5 +62,27 @@ class Security {
       throw Exception(ApiClient.errorMessage(response));
     }
     return json.decode(response.body) as bool;
+  }
+
+  static String _errorMessage(http.Response response) {
+    final raw = ApiClient.errorMessage(response).toLowerCase();
+    
+    if (raw.contains('invalid password') || raw.contains('mot de passe')) {
+      return 'Mot de passe incorrect.';
+    }
+    if (raw.contains('not found') || raw.contains('utilisateur')) {
+      return 'Utilisateur introuvable.';
+    }
+    if (raw.contains('email_format') || raw.contains('email format')) {
+      return 'Le format de l\'adresse email est invalide.';
+    }
+    if (raw.contains('unique_email') || raw.contains('already exists') || raw.contains('déjà utilisé')) {
+      return 'Cette adresse email est déjà associée à un compte.';
+    }
+    if (raw.contains('phone_format')) {
+      return 'Le format du numéro de téléphone est invalide.';
+    }
+    
+    return 'Une erreur est survenue lors de l\'authentification.';
   }
 }
