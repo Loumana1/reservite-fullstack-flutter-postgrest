@@ -24,7 +24,7 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
   late final TextEditingController _numberController;
   late int _capacity;
   bool _submitting = false;
-  bool? _tableHasReservations; // null = chargement, true = bloqué, false = OK
+  int? _minCapacity; // null = chargement, 0 = pas de résa, >0 = min requis
 
   @override
   void initState() {
@@ -51,14 +51,15 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
       statusFilter: 'confirmed',
     );
     if (!mounted) return;
+    final matching = reservations.where(
+      (r) => r.assignedTables.any((t) => t.id == widget.table!.id),
+    );
     setState(() {
-      _tableHasReservations = reservations.any(
-        (r) => r.assignedTables.any((t) => t.id == widget.table!.id),
-      );
+      _minCapacity = matching.isEmpty
+          ? 0
+          : matching.map((r) => r.numberOfGuests).reduce((a, b) => a > b ? a : b);
     });
   }
-
-
 
   Future<void> _save() async {
     final tableNumber = int.tryParse(_numberController.text.trim());
@@ -93,7 +94,7 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.table != null;
-    final blocked = _tableHasReservations == true;
+    final blocked = (_minCapacity ?? 0) > 0;
 
     return Scaffold(
       appBar: ReserviteAppBar(
@@ -122,9 +123,9 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
                     children: [
                       Icon(Icons.warning_amber, color: Colors.orange.shade800),
                       const SizedBox(width: 8),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Cette table est assignée à une réservation confirmée et ne peut pas être modifiée.',
+                          'Cette table a une réservation confirmée pour $_minCapacity personne${(_minCapacity ?? 0) > 1 ? 's' : ''}. La capacité ne peut pas descendre en dessous.',
                         ),
                       ),
                     ],
@@ -140,7 +141,7 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
                 ),
               ),
               const SizedBox(height: 16),
-              if (_tableHasReservations == null && isEdit)
+              if (_minCapacity == null && isEdit)
                 const Center(child: CircularProgressIndicator())
               else
                 Row(
@@ -149,7 +150,7 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
                     const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.remove),
-                      onPressed: !_submitting && !blocked && _capacity > 1
+                      onPressed: !_submitting && _capacity > ((_minCapacity ?? 0) > 1 ? _minCapacity! : 1)
                           ? () => setState(() => _capacity--)
                           : null,
                     ),
@@ -159,7 +160,7 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.add),
-                      onPressed: !_submitting && !blocked
+                      onPressed: !_submitting
                           ? () => setState(() => _capacity++)
                           : null,
                     ),
@@ -167,7 +168,7 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
                 ),
               const Spacer(),
               ElevatedButton(
-                onPressed: _submitting || blocked ? null : _save,
+                onPressed: _submitting ? null : _save,
                 child: _submitting
                     ? const SizedBox(
                         height: 20,
