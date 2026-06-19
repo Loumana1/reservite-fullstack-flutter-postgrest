@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
+import 'package:prbd_2526_c06/core/tools/date_formatters.dart';
 import 'package:prbd_2526_c06/model/reservation.dart';
 import 'package:prbd_2526_c06/providers/manager_reservation_detail_provider.dart';
 import 'package:prbd_2526_c06/providers/manager_reservations_provider.dart';
@@ -31,6 +32,14 @@ class _AssignTablesPageState extends ConsumerState<AssignTablesPage> {
   Widget build(BuildContext context) {
     final tablesAsync =
         ref.watch(restaurantTablesProvider(widget.restaurantId));
+    final detailAsync =
+    ref.watch(managerReservationDetailProvider(
+      ManagerReservationDetailParams(
+        reservationId: widget.reservationId,
+        restaurantId: widget.restaurantId,
+      ),
+    ));
+    final reservation = detailAsync.value?.reservation;
     return Scaffold(
       appBar: ReserviteAppBar(
         title: 'Attribuer des tables',
@@ -62,9 +71,81 @@ class _AssignTablesPageState extends ConsumerState<AssignTablesPage> {
               final c = a.capacity.compareTo(b.capacity);
               return c != 0 ? c : a.tableNumble.compareTo(b.tableNumble);
             });
+
+          final int totalCapacity = tables
+              .where((t) => _selected.contains(t.id))
+              .fold(0, (sum, t) => sum + t.capacity);
+              
+          final int guests = reservation?.numberOfGuests ?? 0;
+          final bool isSufficient = totalCapacity >= guests;
+
           return ListView(
             padding: const EdgeInsets.only(bottom: 88),
             children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Réservation',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text('${reservation?.numberOfGuests} convives'),
+                      Text(formatReservationDateLabel(reservation!.datetime)),
+                      Text(formatReservationTimeLabel(reservation!.datetime))
+                    ],
+                  ),
+                ),
+              ),
+              if (_selected.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+                  child: Card(
+                    color: isSufficient ? Colors.green.shade50 : Colors.orange.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isSufficient ? Icons.check_circle : Icons.warning,
+                            color: isSufficient ? Colors.green[700] : Colors.orange[700],
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Capacité totale: $totalCapacity places',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  isSufficient 
+                                      ? '✓ Capacité suffisante pour $guests convives'
+                                      : '⚠️ Il manque ${guests - totalCapacity} place(s)',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: isSufficient ? Colors.green.shade700 : Colors.orange.shade800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               for (final t in sorted)
                 CheckboxListTile(
                   title: Text('Table ${t.tableNumble}'),
