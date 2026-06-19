@@ -5,7 +5,7 @@ import '../core/services/api_client.dart';
 
 class Restaurant {
 
-  static const int maxSearchResults = 20;
+
   const Restaurant({
     required this.id,
     required this.name,
@@ -49,13 +49,31 @@ class Restaurant {
       pendingRequests: json['pending_requests'] as int?,
     );
   }
+  Restaurant copyWith({
+    DateTime? lastReservationDate,
+    int? pendingRequests,
+  }) {
+    return Restaurant(
+      id: id,
+      name: name,
+      address: address,
+      city: city,
+      phone: phone,
+      description: description,
+      rating: rating,
+      priceRange: priceRange,
+      slotDuration: slotDuration,
+      lastReservationDate: lastReservationDate ?? this.lastReservationDate,
+      pendingRequests: pendingRequests ?? this.pendingRequests,
+    );
+  }
 
   static Future<List<Restaurant>> getAll({String? searchFilter}) async {
     final r = await ApiClient.post('get_restaurants', body: json.encode({
       'search_filter': ?searchFilter,
       'limit_count': AppConfig.maxSearchResults,
     }));
-    if (r.statusCode != 200) throw Exception('Failed to load restaurants');
+    if (r.statusCode != 200) throw Exception('Impossible de charger la liste des restaurants.');
     final List<dynamic> body = json.decode(r.body);
     return body.map((e) => Restaurant.fromJson(e)).toList();
   }
@@ -63,7 +81,7 @@ class Restaurant {
   static Future<Restaurant> getById(int id) async {
     final r = await ApiClient.post('get_restaurant',
         body: json.encode({'restaurant_id': id}));
-    if (r.statusCode != 200) throw Exception('Failed to load restaurant');
+    if (r.statusCode != 200) throw Exception('Impossible de charger la liste des restaurants.');
     return Restaurant.fromJson(json.decode(r.body));
   }
 
