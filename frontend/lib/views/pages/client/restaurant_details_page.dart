@@ -25,7 +25,9 @@ class RestaurantDetailsPage extends ConsumerWidget {
         ),
         onRefresh: () async {
           await ref.read(simulatedTimeProvider.notifier).refresh();
-          ref.invalidate(restaurantServicesProvider(restaurant.id));
+          await ref
+              .read(restaurantServicesProvider(restaurant.id).notifier)
+              .refresh();
         },
       ),
       body: SafeArea(

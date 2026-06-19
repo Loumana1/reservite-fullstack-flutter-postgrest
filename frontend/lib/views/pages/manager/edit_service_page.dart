@@ -43,14 +43,16 @@ class _EditServicePageState extends ConsumerState<EditServicePage> {
   Future<void> _save() async {
     setState(() => _submitting = true);
     try {
-      await Service.save(
-        widget.service?.id,
+      final saved = await Service.save(widget.service?.id,
         widget.restaurantId,
         _dayOfWeek,
         _startController.text.trim(),
         _endController.text.trim(),
       );
-      ref.invalidate(restaurantServicesProvider(widget.restaurantId));
+
+    ref.read(restaurantServicesProvider(widget.restaurantId).notifier)
+        .upsertService(saved);
+
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
@@ -63,30 +65,7 @@ class _EditServicePageState extends ConsumerState<EditServicePage> {
     }
   }
 
-  Future<void> _refreshFromServer() async {
-    ref.invalidate(restaurantServicesProvider(widget.restaurantId));
-    final serviceId = widget.service?.id;
-    if (serviceId == null) return;
-    try {
-      final services = await ref.read(
-        restaurantServicesProvider(widget.restaurantId).future,
-      );
-      final updated = services.where((s) => s.id == serviceId).firstOrNull;
-      if (updated != null && mounted) {
-        setState(() {
-          _dayOfWeek = updated.dayOfWeek;
-          _startController.text = updated.startTime;
-          _endController.text = updated.endTime;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$e')),
-        );
-      }
-    }
-  }
+
 
   @override
   Widget build(BuildContext context) {

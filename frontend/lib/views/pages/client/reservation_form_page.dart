@@ -70,7 +70,6 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
 
     if (result != null) {
       if (_isEditing) {
-        ref.invalidate(reservationDetailProvider(result.id));
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Réservation modifiée avec succès !'),

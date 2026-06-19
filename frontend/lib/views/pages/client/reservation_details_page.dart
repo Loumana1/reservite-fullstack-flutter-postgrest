@@ -10,6 +10,8 @@ import 'package:prbd_2526_c06/providers/reservation_detail_provider.dart';
 import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 import 'package:prbd_2526_c06/views/pages/client/reservation_form_page.dart';
 
+import '../../../model/reservation.dart';
+
 class ReservationDetailsPage extends ConsumerWidget {
   const ReservationDetailsPage({super.key, required this.reservationId});
 
@@ -87,10 +89,7 @@ class ReservationDetailsPage extends ConsumerWidget {
                                               existingReservation: reservation,
                                             ),
                                           ),
-                                        ).then((_) {
-                                          refreshReservationDetail(
-                                              ref, reservationId);
-                                        });
+                                        );
                                       },
                                 icon: const Icon(Icons.edit),
                                 label: const Text('Modifier'),
@@ -104,6 +103,7 @@ class ReservationDetailsPage extends ConsumerWidget {
                                 onPressed: () => _onCancelPressed(
                                   context,
                                   ref,
+                                  reservation,
                                 ),
                                 icon: const Icon(Icons.cancel),
                                 label: const Text('Annuler'),
@@ -121,7 +121,7 @@ class ReservationDetailsPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _onCancelPressed(BuildContext context, WidgetRef ref) async {
+  Future<void> _onCancelPressed(BuildContext context, WidgetRef ref, Reservation reservation,) async {
     final ok = await showConfirmDialog(
       context,
       title: 'Annuler la réservation',
@@ -131,7 +131,7 @@ class ReservationDetailsPage extends ConsumerWidget {
     if (!ok || !context.mounted) return;
 
     try {
-      await cancelReservationDetail(ref, reservationId);
+      await cancelReservationDetail(ref, reservation);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Réservation annulée')),

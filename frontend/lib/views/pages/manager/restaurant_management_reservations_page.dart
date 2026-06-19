@@ -68,7 +68,7 @@ class _RestaurantManagementReservationsMockupScreenState
           returnTab: _currentIndex,
         ),
       ),
-    ).then((_) => refreshManagerReservations(ref, widget.restaurantId));
+    );
   }
 
   void _openEditService(BuildContext context, Service? service) {
@@ -79,11 +79,8 @@ class _RestaurantManagementReservationsMockupScreenState
           restaurantId: widget.restaurantId,
           service: service,
         ),
-      ),
-    ).then((_) {
-      ref.invalidate(restaurantServicesProvider(widget.restaurantId));
-    });
-  }
+      ));
+    }
 
   Future<void> _deleteService(BuildContext context, Service service) async {
     final ok = await showConfirmDialog(
@@ -98,7 +95,8 @@ class _RestaurantManagementReservationsMockupScreenState
 
     try {
       await service.delete();
-      ref.invalidate(restaurantServicesProvider(widget.restaurantId));
+      ref.read(restaurantServicesProvider(widget.restaurantId).notifier)
+          .removeService(service.id);
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Service supprimé')),
@@ -127,12 +125,11 @@ class _RestaurantManagementReservationsMockupScreenState
     await ref.read(simulatedTimeProvider.notifier).refresh();
     switch (_currentIndex) {
       case 0:
-        refreshManagerReservations(ref, widget.restaurantId);
+        refreshManagerReservationsFromServer(ref, widget.restaurantId);
       case 1:
-        ref.invalidate(restaurantServicesProvider(widget.restaurantId));
-        _loadActiveReservations();
+        ref.read(restaurantServicesProvider(widget.restaurantId).notifier).refresh();
       case 2:
-        ref.invalidate(restaurantTablesProvider(widget.restaurantId));
+        ref.read(restaurantTablesProvider(widget.restaurantId).notifier).refresh();
     }
   }
 

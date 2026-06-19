@@ -72,13 +72,14 @@ class _EditTablePageState extends ConsumerState<EditTablePage> {
 
     setState(() => _submitting = true);
     try {
-      await model.Table.save(
+      final saved = await model.Table.save(
         widget.table?.id,
         widget.restaurantId,
         tableNumber,
         _capacity,
       );
-      ref.invalidate(restaurantTablesProvider(widget.restaurantId));
+      ref.read(restaurantTablesProvider(widget.restaurantId).notifier)
+          .upsertTable(saved);
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {

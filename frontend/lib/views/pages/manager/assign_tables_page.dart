@@ -10,12 +10,12 @@ import 'package:prbd_2526_c06/providers/restaurant_tables_provider.dart';
 class AssignTablesPage extends ConsumerStatefulWidget {
   const AssignTablesPage({
     super.key,
-    required this.reservationId,
+    required this.reservation,
     required this.restaurantId,
     this.returnTab = 0,
   });
 
-  final int reservationId;
+  final Reservation reservation;
   final int restaurantId;
   final int returnTab;
 
@@ -39,13 +39,13 @@ class _AssignTablesPageState extends ConsumerState<AssignTablesPage> {
           onPressed: () => Navigator.pop(context),
         ),
         onRefresh: () {
-          ref.invalidate(restaurantTablesProvider(widget.restaurantId));
-          ref.invalidate(managerReservationDetailProvider(
+          ref.read(restaurantTablesProvider(widget.restaurantId).notifier).refresh();
+          ref.read(managerReservationDetailProvider(
             ManagerReservationDetailParams(
-              reservationId: widget.reservationId,
+              reservationId: widget.reservation.id,
               restaurantId: widget.restaurantId,
             ),
-          ));
+          ).notifier).refresh();
         },
       ),
       body: tablesAsync.when(
@@ -105,18 +105,23 @@ class _AssignTablesPageState extends ConsumerState<AssignTablesPage> {
   Future<void> _confirm() async {
     setState(() => _submitting = true);
     try {
-      final reservation =
-          await Reservation.getById(widget.reservationId);
-      await ref
+      final updated = await ref
           .read(managerReservationsProvider(widget.restaurantId).notifier)
-          .confirm(reservation, _selected.toList());
-      refreshManagerReservations(ref, widget.restaurantId);
-      ref.invalidate(managerReservationDetailProvider(
+          .confirm(widget.reservation, _selected.toList());
+      syncAfterManagerReservationChange(
+        ref,
+        widget.restaurantId,
+        updated,
+        before: widget.reservation,
+      );
+
+      ref.read(managerReservationDetailProvider(
         ManagerReservationDetailParams(
-          reservationId: widget.reservationId,
+          reservationId: widget.reservation.id,
           restaurantId: widget.restaurantId,
         ),
-      ));
+      ).notifier).patchDetail(updated);
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Réservation confirmée')),
