@@ -47,6 +47,8 @@ Future<Reservation> cancelReservationDetail(
     listNotifier.patchReservation(updated);
   }
   ref.invalidate(reservationDetailProvider(reservationId));
-  ref.invalidate(restaurantsProvider);
+  ref.read(restaurantsProvider.notifier).syncCardAfterReservationCancelled(
+    before: reservation,
+  );
   return updated;
 }

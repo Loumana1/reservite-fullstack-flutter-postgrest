@@ -6,6 +6,8 @@ import 'package:prbd_2526_c06/providers/client_reservations_provider.dart';
 import 'package:prbd_2526_c06/providers/restaurants_provider.dart';
 import 'package:prbd_2526_c06/providers/simulated_time_provider.dart';
 
+import '../model/restaurant.dart';
+
 class ReservationFormState {
   const ReservationFormState({
     required this.restaurantId,
@@ -221,7 +223,10 @@ class ReservationFormNotifier extends Notifier<ReservationFormState> {
       ref
           .read(clientReservationsProvider.notifier)
           .patchReservation(reservation);
-      ref.invalidate(restaurantsProvider);
+      ref.read(restaurantsProvider.notifier).syncCardAfterReservationSaved(
+        reservation: reservation,
+        isCreate: reservationId == null,
+      );
       return reservation;
     } catch (_) {
       return null;
