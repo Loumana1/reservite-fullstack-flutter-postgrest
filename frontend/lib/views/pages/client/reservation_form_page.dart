@@ -208,22 +208,53 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
                   child: Center(child: CircularProgressIndicator()),
                 )
               else if (state.slotsResponse?.restaurantClosed == true)
-                const _InfoBanner(
-                  icon: Icons.lock,
-                  color: Colors.grey,
-                  title: 'Restaurant fermé',
-                  message:
-                      "Le restaurant n'a pas de service prévu ce jour-là. "
-                      'Choisissez une autre date.',
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning, color: Colors.orange),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Le restaurant est fermé ce jour-là.',
+                          style: TextStyle(
+                            color: Colors.orange,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 )
               else if (state.slotsResponse?.userFullyBooked == true)
-                const _InfoBanner(
-                  icon: Icons.event_busy,
-                  color: Colors.orange,
-                  title: 'Plus de créneaux disponibles',
-                  message:
-                      'Vous avez déjà des réservations couvrant tous les '
-                      'services de ce jour. Choisissez une autre date.',
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning, color: Colors.orange),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Vous avez déjà réservé tous les services de ce jour-là.',
+                          style: TextStyle(
+                            color: Colors.orange,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               const SizedBox(height: 8),
               const Text(
@@ -290,24 +321,30 @@ class _ReservationFormPageState extends ConsumerState<ReservationFormPage> {
               ),
               if (!state.capacityOk && state.selectedSlot != null)
                 const _InfoBanner(
-                  icon: Icons.warning_amber,
-                  color: Colors.deepOrange,
-                  title: 'Capacité insuffisante',
+                  icon: Icons.warning,
+                  color: Colors.orange,
+                  title: 'Surréservation (capacité)',
                   message:
-                      'La capacité des tables disponibles ne suffit pas pour '
-                      'le créneau et le nombre de convives choisis.',
+                      'La capacité du restaurant pour ce créneau pourrait être '
+                      'insuffisante pour le nombre de convives demandé.',
                 ),
               const SizedBox(height: 16),
               TextFormField(
                 key: ValueKey(
-                  'special-${state.specialRequests}-${state.selectedDate}',
+                  'special-${state.selectedDate}',
                 ),
                 initialValue: state.specialRequests,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (value) {
+                  if (value != null && value.isNotEmpty && value.length < 10) {
+                    return 'Les demandes spéciales doivent contenir au moins 10 caractères';
+                  }
+                  return null;
+                },
                 decoration: const InputDecoration(
                   labelText: 'Demandes spéciales (optionnel)',
                   border: OutlineInputBorder(),
                   hintText: 'Allergies, préférences...',
-                  prefixIcon: Icon(Icons.notes),
                 ),
                 maxLines: 3,
                 onChanged: notifier.setSpecialRequests,
