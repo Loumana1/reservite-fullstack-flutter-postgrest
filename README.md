@@ -89,6 +89,13 @@ prbd-2526-c06/
 
 ### 1. Backend (PostgreSQL + PostgREST)
 
+Si besoin, créez la config locale :
+
+```bash
+cp postgrest.conf.example postgrest.conf
+# éditez le mot de passe et le jwt-secret
+```
+
 Depuis le dossier `scripts/` :
 
 ```bash
