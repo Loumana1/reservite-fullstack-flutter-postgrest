@@ -14,8 +14,7 @@ create  or replace function trg_check_min_manager_on_restaurants()
 
 
     end;
-    $$language plpgsql;
-
+    $$language plpgsql security definer;
 create or replace function trg_check_min_manager_on_managers()
    returns trigger as $$
 
@@ -39,7 +38,7 @@ create or replace function trg_check_min_manager_on_managers()
         end if;
         RETURN NULL;
     end;
-    $$language plpgsql;
+    $$language plpgsql security definer;
 
 drop trigger if exists min_manager_on_restaurants on restaurants;
 drop trigger if exists min_manager_on_managers on restaurant_managers;

@@ -10,8 +10,13 @@ class Table {
   final int resaurantId;
   final int tableNumble;
   final int capacity;
+  final bool is_signature;
 
-  Table({required this.id, required this.resaurantId, required this.tableNumble, required this.capacity});
+  Table({required this.id,
+    required this.resaurantId,
+    required this.tableNumble,
+    required this.capacity,
+    required this.is_signature});
 
   factory Table.fromJson(Map<String, dynamic> json){
     return Table(
@@ -19,7 +24,21 @@ class Table {
       resaurantId: json['restaurant'],
       tableNumble: json['table_number'],
       capacity: json['capacity'],
+      is_signature: json['is_signature'] as bool,
     );
+  }
+  Future<Table> updateTableSponsor(bool isSponsor ) async {
+    final r = await ApiClient.post('update_signature',
+    body: json.encode({
+      'table_id' : id,
+      'newsignature': isSponsor,
+    }));
+    if(r.statusCode != 200){
+      throw Exception(ApiClient.errorMessage(r));
+    }
+
+    return Table.fromJson(json.decode(r.body));
+    
   }
 
   static Future<List<Table>> getByRestaurant(int restaurantId) async {

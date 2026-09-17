@@ -29,6 +29,28 @@ class HomeManagerPage extends ConsumerWidget {
     );
   }
 
+  Future<void> _toggleSponsor(
+      BuildContext context,
+      WidgetRef ref,
+      Restaurant r )
+  async {
+
+    try {
+      await
+      ref.
+      read(managerRestaurantsProvider.notifier)
+          .toggleSponsor(r);
+
+    } catch (e) {
+      if (!context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$e')),
+        );
+      }
+    }
+  }
+
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final restaurantsAsync = ref.watch(managerRestaurantsProvider);
@@ -179,8 +201,25 @@ class HomeManagerPage extends ConsumerWidget {
                         ]
                       ],
                     ),
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing:
+
+
+                      IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                      icon: r.is_sponsored ?
+                      Icon(Icons.diamond, size: 28, color: Colors.amber)
+                      :  Icon(Icons.diamond_outlined, size: 28, color: Colors.grey),
+                      onPressed: () { _toggleSponsor(context, ref,r);},
+                    ),
+                   //     const Icon(Icons.chevron_right),
+
+
+
+
+
                     onTap: () => _openDashboard(context, r.id, r.name),
+
                   ),
                 );
               },
@@ -191,3 +230,4 @@ class HomeManagerPage extends ConsumerWidget {
     );
   }
 }
+

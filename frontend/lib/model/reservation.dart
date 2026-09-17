@@ -14,6 +14,7 @@ class Reservation {
     required this.numberOfGuests,
     required this.status,
     this.specialRequests,
+   required this.is_vip,
     this.restaurantName,
     this.restaurantCity,
     this.clientFullName,
@@ -29,6 +30,7 @@ class Reservation {
   final int numberOfGuests;
   final String status;
   final String? specialRequests;
+  final bool is_vip;
   final String? restaurantName;
   final String? restaurantCity;
   final String? clientFullName;
@@ -46,6 +48,7 @@ class Reservation {
       numberOfGuests: json['number_of_guests'] as int,
       status: json['status'] as String,
       specialRequests: json['special_requests'] as String?,
+      is_vip: json['is_vip'] as bool,
       restaurantName: json['restaurant_name'] as String?,
       restaurantCity: json['restaurant_city'] as String?,
       clientFullName: json['client_full_name'] as String?,
@@ -96,6 +99,21 @@ class Reservation {
     }));
     if (r.statusCode != 200) throw Exception(_errorMessage(r));
     return Reservation.fromJson(json.decode(r.body));
+  }
+
+  static Future<Reservation> updateVip({
+    required int reservationId,
+    required int restaurantId,
+
+})async{
+    final response =await await ApiClient.post('update_reservation_vip',
+        body: json.encode({
+          'reservation_id' : reservationId,
+          'restaurant_id': restaurantId,
+        }));
+    if (response.statusCode != 200) throw Exception(ApiClient.errorMessage(response));
+    return Reservation.fromJson(json.decode(response.body));
+
   }
 
   Future<Reservation> cancel() async {

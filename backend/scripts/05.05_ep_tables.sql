@@ -8,7 +8,7 @@ $$
 begin
     perform auth.check_logged();
 return query
-select t.id, t.restaurant, t.table_number, t.capacity
+select t.id, t.restaurant, t.table_number, t.capacity, t.is_signature
 from tables t
 where t.restaurant = get_tables.restaurant_id
 order by t.capacity, t.table_number;
@@ -54,10 +54,35 @@ where id = save_table.table_id;
 new_id := save_table.table_id;
 end if;
 
-select t.id, t.restaurant, t.table_number, t.capacity
+select t.id, t.restaurant, t.table_number, t.capacity, t.is_signature
 into result from tables t where t.id = new_id;
 return result;
 end;
 $$ language plpgsql security definer;
 
 grant execute on function save_table(integer, integer, integer, integer) to manager;
+
+
+create or replace function update_signature(table_id integer, newsignature boolean)
+    returns table_info as
+$$
+declare
+    result table_info;
+begin
+    perform auth.check_logged();
+
+    update tables
+    set is_signature = newSignature
+    where tables.id = update_signature.table_id;
+
+    select t.id, t.restaurant, t.table_number, t.capacity, t.is_signature
+    into result
+    from tables t
+    where t.id = update_signature.table_id;
+
+    return result;
+end;
+$$ language plpgsql security definer;
+
+-- IMPORTANT : le grant actuel pointe vers update(integer, boolean) → 404
+grant execute on function update_signature(integer, boolean) to manager;

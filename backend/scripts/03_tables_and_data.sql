@@ -10,7 +10,8 @@ create table restaurants
     description text             default null,
     rating      double precision default null,
     price_range int              default null,
-    slot_duration int           not null default 30
+    slot_duration int           not null default 30,
+    is_sponsored     boolean              not null default false
 );
 
 create unique index on restaurants (trim(lower(name)), trim(lower(city)));
@@ -21,6 +22,7 @@ create table tables
     restaurant     int not null references restaurants (id) on delete cascade,
     table_number   int not null,
     capacity       int not null,
+    is_signature    boolean not null default false,
     unique (restaurant, table_number)
 );
 
@@ -53,7 +55,8 @@ create table reservations
     datetime         timestamp   not null,
     number_of_guests int         not null,
     status           status_type not null default 'pending'::status_type,
-    special_requests text                 default null
+    special_requests text                 default null,
+    is_vip          boolean              not null default false
 );
 
 create table reservation_tables

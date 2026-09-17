@@ -16,6 +16,7 @@ class Restaurant {
     this.rating,
     this.priceRange,
     required this.slotDuration,
+    required this.is_sponsored,
     this.lastReservationDate,
     this.pendingRequests,
   });
@@ -29,6 +30,7 @@ class Restaurant {
   final double? rating;
   final int? priceRange;
   final int slotDuration;
+  final bool is_sponsored;
   final DateTime? lastReservationDate;
   final int? pendingRequests;
 
@@ -43,6 +45,7 @@ class Restaurant {
       rating: (json['rating'] as num?)?.toDouble(),
       priceRange: json['price_range'] as int?,
       slotDuration: json['slot_duration'] as int? ?? 30,
+      is_sponsored: json['is_sponsored']as bool,
       lastReservationDate: json['last_reservation_date'] != null
           ? DateTime.parse(json['last_reservation_date'].toString())
           : null,
@@ -63,6 +66,7 @@ class Restaurant {
       rating: rating,
       priceRange: priceRange,
       slotDuration: slotDuration,
+      is_sponsored: is_sponsored,
       lastReservationDate: lastReservationDate ?? this.lastReservationDate,
       pendingRequests: pendingRequests ?? this.pendingRequests,
     );
@@ -83,6 +87,17 @@ class Restaurant {
         body: json.encode({'restaurant_id': id}));
     if (r.statusCode != 200) throw Exception('Impossible de charger la liste des restaurants.');
     return Restaurant.fromJson(json.decode(r.body));
+  }
+
+ Future<Restaurant> updateSponsor(bool isSponsored) async{
+    final response = await ApiClient.post('update_sponsor',body: json.encode({
+      'restaurant_id' : id,
+      'sponsor_state':  isSponsored,
+    }));
+    if (response.statusCode != 200)
+      throw Exception(ApiClient.errorMessage(response));
+
+   return Restaurant.fromJson(json.decode(response.body));
   }
 
 }

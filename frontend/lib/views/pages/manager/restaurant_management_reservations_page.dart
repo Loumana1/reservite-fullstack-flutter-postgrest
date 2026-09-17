@@ -6,6 +6,7 @@ import 'package:prbd_2526_c06/core/Widgets/reservation_tile.dart';
 import 'package:prbd_2526_c06/core/tools/service_time_picker.dart';
 import 'package:prbd_2526_c06/core/Widgets/reservite_app_bar.dart';
 import 'package:prbd_2526_c06/model/reservation.dart';
+import 'package:prbd_2526_c06/model/restaurant.dart';
 import 'package:prbd_2526_c06/model/service.dart';
 import 'package:prbd_2526_c06/model/table.dart' as model;
 import 'package:prbd_2526_c06/providers/manager_reservations_provider.dart';
@@ -51,6 +52,31 @@ class _RestaurantManagementReservationsMockupScreenState
     });
   }
 
+  Future<void> _toggleVip(BuildContext context, Reservation r) async {
+    try {
+      await ref
+          .read(managerReservationsProvider(widget.restaurantId).notifier)
+          .toggleVip(r);
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$e')),
+      );
+    }
+  }
+
+  Future<void> _toggleSponsorTable(BuildContext context, model.Table t ) async {
+    try{
+      await ref.read(restaurantTablesProvider(widget.restaurantId).notifier)
+      .togglesponsorTable(t );
+
+    }catch(e){
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$e')),
+      );
+    }
+  }
 
   bool _isServiceDeletable(Service service) {
     final reservations = _activeReservations;
@@ -204,6 +230,15 @@ class _RestaurantManagementReservationsMockupScreenState
                       subtitle: widget.restaurantName,
                       subtitleIcon: Icons.restaurant,
                       onTap: () => _openDetails(context, r.id),
+
+                      trailingAction: IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                        icon: r.is_vip ?
+                            const Icon(Icons.star, size: 28, color: Colors.amber)
+                            : const Icon(Icons.star_border, size: 28, color: Colors.grey),
+                        onPressed: () { _toggleVip(context, r); },
+                      ),
                     );
                   },
                 );
@@ -270,8 +305,23 @@ class _RestaurantManagementReservationsMockupScreenState
                 child: ListTile(
                   title: Text('Table ${t.tableNumble}'),
                   subtitle: Text('${t.capacity} places'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _openEditTable(context, t),
+                  trailing:
+                      Row(
+                          mainAxisSize: MainAxisSize.min,
+                  children : [
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                      icon: t.is_signature ?
+                      Icon(Icons.bookmark, size: 28, color: Colors.deepPurple)
+                      :  Icon(Icons.bookmark_border, size: 28, color: Colors.grey),
+                      onPressed: () { _toggleSponsorTable(context,t ) ;},
+                    ),
+                    const Icon(Icons.chevron_right),
+                  ]),
+
+                    onTap: () => _openEditTable(context, t),
+
                 ),
               );
             },

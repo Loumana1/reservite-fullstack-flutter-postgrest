@@ -93,6 +93,23 @@ class ManagerRestaurantsNotifier extends AsyncNotifier<List<Restaurant>> {
     return null;
   }
 
+  Future<Restaurant> toggleSponsor(Restaurant r) async {
+
+    final updated = await r.updateSponsor(!r.is_sponsored);
+
+    final list = state.value ?? [];
+
+    state = AsyncData([
+      for (final item in list) item.id == updated.id ? updated : item,
+    ]);
+
+
+
+    return updated;
+
+  }
+
+
   static int _byLastReservationDesc(Restaurant r, Restaurant r2) {
     final a = r.lastReservationDate;
     final b = r2.lastReservationDate;

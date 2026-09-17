@@ -12,6 +12,7 @@ class ReservationTile extends StatelessWidget {
     this.subtitle,
     required this.subtitleIcon,
     required this.onTap,
+    required this. trailingAction
   });
 
   final Reservation reservation;
@@ -19,6 +20,7 @@ class ReservationTile extends StatelessWidget {
   final String? subtitle;
   final IconData subtitleIcon;
   final VoidCallback onTap;
+  final Widget? trailingAction;
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +94,31 @@ class ReservationTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right),
+
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children : [
+                  if(trailingAction != null) trailingAction!,
+                  const Icon(Icons.chevron_right),
+                ]
+
+              )
+              /*
+              Row( children : [
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                icon: Icon(reservation.is_vip ?  Icons.star : Icons.star_border, size: 28,
+                     color: reservation.is_vip ? Colors.amber : Colors.grey),
+                onPressed: () { Reservation.updateVip(reservationId:  reservation.id, restaurantId: reservation.restaurantId); },
+              ),
+
+                const Icon(Icons.chevron_right),
+                ],
+
+      )
+
+               */
             ],
           ),
         ),

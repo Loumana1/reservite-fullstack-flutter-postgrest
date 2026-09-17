@@ -12,3 +12,6 @@
 /data
 .DS_Store
 frontend/.hive
+
+# Local PostgREST config (copy from postgrest.conf.example)
+postgrest.conf

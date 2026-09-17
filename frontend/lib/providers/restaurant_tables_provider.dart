@@ -22,6 +22,24 @@ class RestaurantTablesNotifier extends AsyncNotifier<List<Table>> {
     state = await AsyncValue.guard(() => Table.getByRestaurant(restaurantId));
   }
 
+  Future<Table> togglesponsorTable(Table t) async{
+    final update = await  t.updateTableSponsor(!t.is_signature);
+
+    final list = state.value ?? [];
+    state = AsyncData([
+      for(final table in list )
+        table.id == update.id ?
+            update : table,
+
+
+    ]);
+
+    return update;
+
+  }
+
+
+
   void upsertTable(Table saved) {
     final list = [...?state.value];
     final i = list.indexWhere((t) => t.id == saved.id);

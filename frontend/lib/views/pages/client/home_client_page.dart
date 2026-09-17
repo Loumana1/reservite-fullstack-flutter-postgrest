@@ -118,6 +118,7 @@ class HomeClientPage extends ConsumerWidget {
                         subtitle: city.isEmpty ? null : city,
                         subtitleIcon: Icons.location_on,
                         onTap: () => _openDetails(context, r.id),
+                        trailingAction: null,
                       );
                     },
                   );

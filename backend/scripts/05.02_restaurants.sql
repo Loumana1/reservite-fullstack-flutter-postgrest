@@ -13,6 +13,7 @@ create type restaurant_info as
     rating                 double precision,
     price_range            integer,
     slot_duration          integer,
+    is_sponsored           boolean,
     last_reservation_date  timestamp,
     pending_requests       integer
 );
@@ -37,8 +38,8 @@ begin
     if v_role = 'client' then
     return query
         select r.id, r.name, r.address, r.city, r.phone, r.description,
-               r.rating, r.price_range, r.slot_duration,
-               (select max(res.datetime) from reservations res
+               r.rating, r.price_range, r.slot_duration,r.is_sponsored,
+                                                        (select max(res.datetime) from reservations res
                 where res.restaurant = r.id and res.client = v_uid)
                    as last_reservation_date,
                (select count(*)::int from reservations res
@@ -55,8 +56,8 @@ begin
     else
     return query
         select r.id, r.name, r.address, r.city, r.phone, r.description,
-               r.rating, r.price_range, r.slot_duration,
-               (select max(res.datetime) from reservations res where res.restaurant = r.id)
+               r.rating, r.price_range, r.slot_duration,is_sponsored,
+                                                        (select max(res.datetime) from reservations res where res.restaurant = r.id)
                    as last_reservation_date,
                (select count(*)::int from reservations res
                 where res.restaurant = r.id and res.status = 'pending'::status_type)
@@ -97,8 +98,8 @@ begin
 end if;
 
     select r.id, r.name, r.address, r.city, r.phone, r.description,
-           r.rating, r.price_range, r.slot_duration,
-           (select max(res.datetime) from reservations res
+           r.rating, r.price_range, r.slot_duration,is_sponsored,
+                                                    (select max(res.datetime) from reservations res
             where res.restaurant = r.id
               and (v_role = 'manager' or res.client = v_uid)),
            (select count(*)::int from reservations res
@@ -116,3 +117,48 @@ end;
 $$ language plpgsql security definer;
 
 grant execute on function get_restaurant(integer) to client, manager;
+
+
+create or replace function update_sponsor(restaurant_id integer, sponsor_state boolean)
+returns restaurant_info as
+    $$
+declare
+    v_uid integer;
+begin
+    -- (1) il faut être connecté
+    perform auth.check_logged();
+    v_uid := auth.id()::integer;
+
+    -- (2) le restaurant doit exister
+    if not exists(select 1 from restaurants where id = update_sponsor.restaurant_id) then
+        raise exception 'Restaurant non trouvé';
+    end if;
+
+    -- (3) l'utilisateur connecté doit être manager du restaurant
+    if not exists(
+        select 1 from restaurant_managers rm
+        where rm.restaurant = update_sponsor.restaurant_id
+          and rm.manager = v_uid
+    ) then
+        raise exception 'Accès refusé : vous n''êtes pas manager de ce restaurant';
+    end if;
+
+    -- (4) pour sponsoriser, il faut au moins une réservation confirmée ou complétée
+    -- (cette condition ne s'applique pas lorsqu'on retire le sponsoring)
+    if sponsor_state and not exists(
+        select 1 from reservations res
+        where res.restaurant = update_sponsor.restaurant_id
+          and res.status in ('confirmed', 'completed')
+    ) then
+        raise exception 'Le restaurant doit avoir au moins une réservation confirmée ou complétée pour être sponsorisé';
+    end if;
+
+    update restaurants
+    set is_sponsored = sponsor_state
+    where id = update_sponsor.restaurant_id;
+
+    return get_restaurant(update_sponsor.restaurant_id);
+end;
+    $$language plpgsql security definer ;
+
+grant execute on function update_sponsor(integer, boolean) to manager;

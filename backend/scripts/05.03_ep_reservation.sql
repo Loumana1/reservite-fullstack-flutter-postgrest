@@ -8,7 +8,8 @@ create type table_info as
     id           integer,
     restaurant   integer,
     table_number integer,
-    capacity     integer
+    capacity     integer,
+    is_signature boolean
 );
 
 create type reservation_info as
@@ -20,6 +21,7 @@ create type reservation_info as
     number_of_guests integer,
     status           varchar,
     special_requests text,
+    is_vip           boolean,
     restaurant_name  varchar,
     restaurant_city  varchar,
     client_full_name varchar,
@@ -41,12 +43,12 @@ begin
     v_uid  := auth.id()::integer;
 
     select res.id, res.client, res.restaurant, res.datetime, res.number_of_guests,
-           res.status::varchar, res.special_requests,
+           res.status::varchar, res.special_requests,res.is_vip,
            rest.name, rest.city,
            u.full_name, u.email,u.phone,
            coalesce((
                select array_agg(
-                          (t.id, t.restaurant, t.table_number, t.capacity)::table_info
+                          (t.id, t.restaurant, t.table_number, t.capacity,t.is_signature )::table_info
                           order by t.capacity, t.table_number)
                from reservation_tables rt
                         join tables t on t.id = rt."table"
@@ -92,12 +94,12 @@ begin
     if v_role = 'client' then
     return query
         select res.id, res.client, res.restaurant, res.datetime, res.number_of_guests,
-               res.status::varchar, res.special_requests,
+               res.status::varchar, res.special_requests,res.is_vip,
                rest.name, rest.city,
                u.full_name, u.email,u.phone,
                coalesce((
                    select array_agg(
-                              (t.id, t.restaurant, t.table_number, t.capacity)::table_info
+                              (t.id, t.restaurant, t.table_number, t.capacity, t.is_signature)::table_info
                               order by t.capacity, t.table_number)
                    from reservation_tables rt
                             join tables t on t.id = rt."table"
@@ -113,12 +115,12 @@ begin
     else
     return query
         select res.id, res.client, res.restaurant, res.datetime, res.number_of_guests,
-               res.status::varchar, res.special_requests,
+               res.status::varchar, res.special_requests,res.is_vip,
                rest.name, rest.city,
                u.full_name, u.email,u.phone,
                coalesce((
                    select array_agg(
-                              (t.id, t.restaurant, t.table_number, t.capacity)::table_info
+                              (t.id, t.restaurant, t.table_number, t.capacity, t.is_signature)::table_info
                               order by t.capacity, t.table_number)
                    from reservation_tables rt
                             join tables t on t.id = rt."table"
@@ -293,3 +295,53 @@ end;
 $$ language plpgsql security definer;
 
 grant execute on function complete_reservation(integer) to manager;
+
+
+create or replace function update_reservation_vip(reservation_id integer, restaurant_id integer)
+returns reservation_info as
+    $$
+    declare
+        v_uid  integer;
+
+        begin
+
+            perform auth.check_logged();
+            if auth.role() != 'manager' then
+                raise exception 'Seul un manager peut terminer une réservation';
+            end if;
+            v_uid := auth.id()::integer;
+
+        --- manger restaurant ?
+/*
+            if not exists( select 1 from restaurant_managers rm where rm.manager = v_uid and rm.restaurant = restaurant_id )
+           then raise 'Ce manager ne gere pas ce restaurant ';
+           end if;
+
+
+ */
+
+
+
+            --update
+            if exists (select 1 from reservations r where reservation_id = r.id and r.is_vip =true)
+            then
+                update reservations
+                set is_vip = false
+                where reservation_id = reservations.id;
+
+            else
+                update reservations
+                set is_vip = true
+                where reservation_id = reservations.id;
+             end if ;
+
+
+            return get_reservation(reservation_id);
+
+
+    end;
+
+    $$language plpgsql  security definer;
+
+
+grant execute on function update_reservation_vip(integer, integer) to manager;

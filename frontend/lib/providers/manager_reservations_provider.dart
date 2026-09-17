@@ -68,6 +68,8 @@ class ManagerReservationsNotifier extends AsyncNotifier<List<Reservation>> {
   Future<Reservation> confirm(Reservation r, List<int> tableIds)=>
       _mutate(r.confirm(tableIds));
 
+  Future<Reservation> toggleVip(Reservation r) => _mutate(Reservation.updateVip(reservationId: r.id, restaurantId: r.restaurantId));
+
   Future<Reservation> _mutate(Future<Reservation> action) async {
     try {
       final updated = await action;
